@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package:Package = .init(name: "swift-io",
-    platforms: [.macOS(.v15), .iOS(.v18), .tvOS(.v18), .visionOS(.v2), .watchOS(.v11)],
+    platforms: [.macOS(.v15), .iOS(.v18), .visionOS(.v2)],
     products: [
         .library(name: "SystemIO", targets: ["SystemIO"]),
         .library(name: "System_ArgumentParser", targets: ["System_ArgumentParser"]),
