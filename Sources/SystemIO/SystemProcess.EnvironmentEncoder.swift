@@ -1,33 +1,20 @@
-extension SystemProcess
-{
-    @frozen public
-    struct EnvironmentEncoder
-    {
-        @usableFromInline
-        var offsets:[Int]
-        @usableFromInline
-        var buffer:[UInt8]
+extension SystemProcess {
+    @frozen public struct EnvironmentEncoder {
+        @usableFromInline var offsets: [Int]
+        @usableFromInline var buffer: [UInt8]
 
-        @inlinable
-        init()
-        {
+        @inlinable init() {
             self.offsets = []
             self.buffer = []
         }
     }
 }
-extension SystemProcess.EnvironmentEncoder
-{
-    @inlinable public
-    subscript(name:String) -> String?
-    {
+extension SystemProcess.EnvironmentEncoder {
+    @inlinable public subscript(name: String) -> String? {
         get { nil }
-        set (value)
-        {
+        set (value) {
             guard
-            let value:String
-            else
-            {
+            let value: String else {
                 return
             }
 

@@ -10,32 +10,22 @@ import Glibc
 #error("unsupported platform")
 #endif
 
-extension FilePath.DirectoryIterator
-{
+extension FilePath.DirectoryIterator {
     /// An unsafe interface for iterating directory entries from a directory pointer.
-    @usableFromInline @frozen
-    enum Stream
-    {
+    @usableFromInline @frozen enum Stream {
         case unopened(FilePath)
         case opened(FilePath.DirectoryPointer?)
     }
 }
-extension FilePath.DirectoryIterator.Stream
-{
-    private mutating
-    func open() throws -> FilePath.DirectoryPointer?
-    {
-        switch self
-        {
+extension FilePath.DirectoryIterator.Stream {
+    private mutating func open() throws -> FilePath.DirectoryPointer? {
+        switch self {
         case .unopened(let path):
-            let pointer:FilePath.DirectoryPointer? = try path.withPlatformString
-            {
-                if  let pointer:FilePath.DirectoryPointer = opendir($0)
-                {
+            let pointer: FilePath.DirectoryPointer? = try path.withPlatformString {
+                if  let pointer: FilePath.DirectoryPointer = opendir($0) {
                     return pointer
                 }
-                switch Errno.init(rawValue: errno)
-                {
+                switch Errno.init(rawValue: errno) {
                 case .notDirectory:
                     return nil
 
@@ -50,41 +40,30 @@ extension FilePath.DirectoryIterator.Stream
             return pointer
         }
     }
-    mutating
-    func next() throws -> FilePath.Component?
-    {
-        guard let stream:FilePath.DirectoryPointer = try self.open()
-        else
-        {
+    mutating func next() throws -> FilePath.Component? {
+        guard let stream: FilePath.DirectoryPointer = try self.open() else {
             return nil
         }
 
-        guard let offset:Int = MemoryLayout<dirent>.offset(of: \.d_name)
-        else
-        {
+        guard let offset: Int = MemoryLayout<dirent>.offset(of: \.d_name) else {
             fatalError("invalid `dirent` layout")
         }
-        while let entry:UnsafeMutablePointer<dirent> = readdir(stream)
-        {
+        while let entry: UnsafeMutablePointer<dirent> = readdir(stream) {
             // `entry` is likely statically-allocated, and has variable-length layout.
             //  attemping to unbind or rebind memory would be meaningless, as we must
             //  rely on the kernel to protect us from buffer overreads.
-            let field:UnsafeMutableRawPointer = .init(entry) + offset
-            let name:UnsafeMutablePointer<CInterop.PlatformChar> = field.assumingMemoryBound(
-                to: CInterop.PlatformChar.self)
+            let field: UnsafeMutableRawPointer = .init(entry) + offset
+            let name: UnsafeMutablePointer<CInterop.PlatformChar> = field.assumingMemoryBound(
+                to: CInterop.PlatformChar.self
+            )
 
-            guard let component:FilePath.Component = .init(platformString: name)
-            else
-            {
+            guard let component: FilePath.Component = .init(platformString: name) else {
                 fatalError("could not read platform string from `dirent.d_name`")
             }
             // ignore `.` and `..`
-            if  case .regular = component.kind
-            {
+            if  case .regular = component.kind {
                 return component
-            }
-            else
-            {
+            } else {
                 continue
             }
         }
@@ -93,12 +72,8 @@ extension FilePath.DirectoryIterator.Stream
         self = .opened(nil)
         return nil
     }
-    mutating
-    func close()
-    {
-        guard case .opened(let stream?) = self
-        else
-        {
+    mutating func close() {
+        guard case .opened(let stream?) = self else {
             return
         }
 

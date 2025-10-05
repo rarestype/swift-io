@@ -6,13 +6,10 @@ import Glibc
 #error("unsupported platform")
 #endif
 
-extension FilePath
-{
+extension FilePath {
     #if canImport(Darwin)
-    @usableFromInline
-    typealias DirectoryPointer = UnsafeMutablePointer<DIR>
+    @usableFromInline typealias DirectoryPointer = UnsafeMutablePointer<DIR>
     #elseif canImport(Glibc)
-    @usableFromInline
-    typealias DirectoryPointer = OpaquePointer
+    @usableFromInline typealias DirectoryPointer = OpaquePointer
     #endif
 }

@@ -1,10 +1,7 @@
 import enum SystemPackage.CInterop
 
-extension FilePermissions
-{
-    @frozen public
-    enum Component:CInterop.Mode
-    {
+extension FilePermissions {
+    @frozen public enum Component: CInterop.Mode {
         case x      = 0b001
         case w      = 0b010
         case wx     = 0b011
