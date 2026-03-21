@@ -12,6 +12,9 @@ extension FilePath {
     }
 }
 extension FilePath {
+    @inlinable public var directory: Directory { .init(path: self) }
+}
+extension FilePath {
     @inlinable func open(
         _ mode: FileDescriptor.AccessMode,
         permissions: (
@@ -102,46 +105,28 @@ extension FilePath {
 extension FilePath {
     /// Reads a *single* line from this file, without the line terminator.
     ///
-    /// This is mostly useful for reading secrets, like keys and tokens.
+    /// This is mostly useful for reading secrets, like keys and tokens. This is not performant
+    /// for large files, for that, use ``readLines(buffering:with:)`` instead.
     @inlinable public func readLine() throws -> String {
         .init(try self.read().prefix { !$0.isNewline })
     }
-}
-extension FilePath {
+
+    /// Reads a file line-by-line incrementally, yielding each line as an `ArraySlice<UInt8>`.
+    @inlinable public func readLines(
+        buffering: Int = 0x100000,
+        with body: (ArraySlice<UInt8>) throws -> Void
+    ) throws {
+        try self.open(.readOnly) { try $0.readLines(with: body) }
+    }
+
     @inlinable public func read(_: [UInt8].Type = [UInt8].self) throws -> [UInt8] {
         try self.open(.readOnly) { try $0.readAll() }
     }
     @inlinable public func read(_: String.Type = String.self) throws -> String {
         try self.open(.readOnly) { try $0.readAll() }
     }
-
-    // @inlinable public
-    // func write(_ buffer:UnsafeBufferPointer<UInt8>) throws
-    // {
-    //     do
-    //     {
-    //         let file:FileDescriptor = try .open(self, .writeOnly,
-    //             options:        [.create, .truncate],
-    //             permissions:    [.ownerReadWrite, .groupRead, .otherRead])
-    //         let count:Int = try file.closeAfter
-    //         {
-    //             try file.write(UnsafeRawBufferPointer.init(buffer))
-    //         }
-    //         guard count == buffer.count
-    //         else
-    //         {
-    //             throw FileError.incompleteWrite(bytes: count, of: buffer.count, path: self)
-    //         }
-    //     }
-    //     catch let error as FileError
-    //     {
-    //         throw error
-    //     }
-    //     catch let error
-    //     {
-    //         throw FileError.system(error: error, path: self)
-    //     }
-    // }
+}
+extension FilePath {
     @inlinable public func overwrite(
         with bytes: ArraySlice<UInt8>,
         permissions: (
@@ -158,19 +143,21 @@ extension FilePath {
             try $0.writeAll(bytes)
         }
     }
-    // @inlinable public
-    // func write(_ string:String) throws
-    // {
-    //     var string:String = string
-    //     try string.withUTF8 { try self.write($0) }
-    // }
-    // // will make the string UTF-8 and contiguous
-    // @inlinable public
-    // func write(_ string:inout String) throws
-    // {
-    //     try string.withUTF8 { try self.write($0) }
-    // }
-}
-extension FilePath {
-    @inlinable public var directory: Directory { .init(path: self) }
+
+    @inlinable public func overwrite(
+        with utf8: String.UTF8View,
+        permissions: (
+            owner: FilePermissions.Component?,
+            group: FilePermissions.Component?,
+            other: FilePermissions.Component?
+        ) = (.rw, .rw, .r)
+    ) throws {
+        let _: Int = try self.open(
+            .writeOnly,
+            permissions: permissions,
+            options: [.create, .truncate]
+        ) {
+            try $0.writeAll(utf8)
+        }
+    }
 }

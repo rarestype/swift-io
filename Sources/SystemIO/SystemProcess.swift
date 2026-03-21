@@ -135,7 +135,7 @@ extension SystemProcess {
         return status == 0 ? .success(()) : .failure(.exit(status, self.invocation))
     }
 
-    public func callAsFunction() throws {
+    public func callAsFunction() throws(SystemProcessError) {
         try self.status().get()
     }
 }
