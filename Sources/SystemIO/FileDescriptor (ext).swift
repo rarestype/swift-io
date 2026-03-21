@@ -84,7 +84,50 @@ extension FileDescriptor {
         }
     }
 }
+extension FileDescriptor {
+    /// Reads a file line-by-line incrementally, yielding each line as an `ArraySlice<UInt8>`.
+    public func readLines(
+        buffering: Int = 0x100000,
+        with body: (ArraySlice<UInt8>) throws -> Void
+    ) throws {
+        let buffer: UnsafeMutableRawBufferPointer = .allocate(
+            byteCount: buffering,
+            alignment: 1
+        )
+        defer {
+            buffer.deallocate()
+        }
 
+        var bytes: [UInt8] = []
+        ;   bytes.reserveCapacity(buffering)
+
+        while true {
+            // Read directly from the file descriptor
+            let read: Int = try self.read(into: buffer)
+            if  read == 0 {
+                // end of file
+                if !bytes.isEmpty {
+                    try body(bytes[...])
+                }
+                break
+            }
+
+            // Bind the raw buffer to UInt8 and append to our leftover array
+            bytes += buffer.prefix(read)
+
+            var i: Int = bytes.startIndex
+            // Keep extracting lines as long as we find a newline byte (0x0A)
+            while let newline: Int = bytes[i...].firstIndex(of: 0x0A) {
+                try body(bytes[i ..< newline])
+                i = bytes.index(after: newline)
+            }
+            if  i > 0 {
+                // move remaining data to the front of the array
+                bytes.removeFirst(i)
+            }
+        }
+    }
+}
 extension FileDescriptor {
     @inlinable public static func <- (binding: Int32, self: Self) -> SystemProcess.Stream {
         precondition(binding > 2, "Invalid file descriptor index: \(binding)")
