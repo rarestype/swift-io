@@ -1,15 +1,8 @@
 <div align="center">
 
-***`io`***
+💽 &nbsp; **swift-io** &nbsp; 💽
 
-[![Tests](https://github.com/tayloraswift/swift-io/actions/workflows/Tests.yml/badge.svg)](https://github.com/tayloraswift/swift-io/actions/workflows/Tests.yml)
-[![Documentation](https://github.com/tayloraswift/swift-io/actions/workflows/Documentation.yml/badge.svg)](https://github.com/tayloraswift/swift-io/actions/workflows/Documentation.yml)
-
-</div>
-
-The ***swift-io*** library is a ???
-
-<div align="center">
+extends swift-system with common-sense interfaces and DSLs
 
 [documentation](https://swiftinit.org/docs/swift-io) ·
 [license](LICENSE)
@@ -24,6 +17,7 @@ The swift-io library requires Swift 6.0 or later.
 
 | Platform | Status |
 | -------- | ------ |
+| 💬 Documentation | [![Documentation](https://github.com/tayloraswift/swift-io/actions/workflows/Documentation.yml/badge.svg)](https://github.com/tayloraswift/swift-io/actions/workflows/Documentation.yml) |
 | 🐧 Linux | [![Tests](https://github.com/tayloraswift/swift-io/actions/workflows/Tests.yml/badge.svg)](https://github.com/tayloraswift/swift-io/actions/workflows/Tests.yml) |
 | 🍏 Darwin | [![Tests](https://github.com/tayloraswift/swift-io/actions/workflows/Tests.yml/badge.svg)](https://github.com/tayloraswift/swift-io/actions/workflows/Tests.yml) |
 | 🍏 Darwin (iOS) | [![iOS](https://github.com/tayloraswift/swift-io/actions/workflows/iOS.yml/badge.svg)](https://github.com/tayloraswift/swift-io/actions/workflows/iOS.yml) |
