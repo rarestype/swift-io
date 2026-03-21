@@ -1,7 +1,8 @@
 // swift-tools-version:6.0
 import PackageDescription
 
-let package:Package = .init(name: "swift-io",
+let package: Package = .init(
+    name: "swift-io",
     platforms: [.macOS(.v15), .iOS(.v18), .visionOS(.v2)],
     products: [
         .library(name: "SystemIO", targets: ["SystemIO"]),
@@ -13,31 +14,36 @@ let package:Package = .init(name: "swift-io",
         .package(url: "https://github.com/apple/swift-system", from: "1.6.4"),
     ],
     targets: [
-        .target(name: "SystemIO",
+        .target(
+            name: "SystemIO",
             dependencies: [
                 .product(name: "SystemPackage", package: "swift-system"),
-            ]),
+            ]
+        ),
 
-        .target(name: "System_ArgumentParser",
+        .target(
+            name: "System_ArgumentParser",
             dependencies: [
                 .target(name: "SystemIO"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
-            ]),
+            ]
+        ),
 
-        .testTarget(name: "SystemTests",
+        .testTarget(
+            name: "SystemTests",
             dependencies: [
                 .target(name: "SystemIO"),
             ],
             exclude: [
                 "directories",
-            ]),
+            ]
+        ),
     ]
 )
 
-for target:Target in package.targets
-{
+for target: Target in package.targets {
     {
-        var settings:[SwiftSetting] = $0 ?? []
+        var settings: [SwiftSetting] = $0 ?? []
 
         settings.append(.enableUpcomingFeature("ExistentialAny"))
         settings.append(.enableExperimentalFeature("StrictConcurrency"))
