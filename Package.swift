@@ -8,8 +8,9 @@ let package:Package = .init(name: "swift-io",
         .library(name: "System_ArgumentParser", targets: ["System_ArgumentParser"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.5.0"),
-        .package(url: "https://github.com/apple/swift-system", from: "1.4.0"),
+        .package(url: "https://github.com/ordo-one/dollup", from: "1.0.1"),
+        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.7.1"),
+        .package(url: "https://github.com/apple/swift-system", from: "1.6.4"),
     ],
     targets: [
         .target(name: "SystemIO",
@@ -33,10 +34,10 @@ let package:Package = .init(name: "swift-io",
     ]
 )
 
-for target:PackageDescription.Target in package.targets
+for target:Target in package.targets
 {
     {
-        var settings:[PackageDescription.SwiftSetting] = $0 ?? []
+        var settings:[SwiftSetting] = $0 ?? []
 
         settings.append(.enableUpcomingFeature("ExistentialAny"))
         settings.append(.enableExperimentalFeature("StrictConcurrency"))
