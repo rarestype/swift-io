@@ -31,7 +31,7 @@ extension SystemProcess.EnvironmentSpecification {
     ) rethrows -> Self {
         var encoder: SystemProcess.EnvironmentEncoder = .init()
         try encode(&encoder)
-        return .init(inherit: false, offsets: encoder.offsets, buffer: encoder.buffer)
+        return .init(inherit: true, offsets: encoder.offsets, buffer: encoder.buffer)
     }
 }
 extension SystemProcess.EnvironmentSpecification {
@@ -67,9 +67,7 @@ extension SystemProcess.EnvironmentSpecification {
                     /// are completely constant. [...] The functions shall not modify the
                     /// strings to which the arguments point.
                     /// '''
-                    let string: UnsafeMutablePointer<CChar> = .init(
-                        mutating: base + self.offsets[j]
-                    )
+                    let string: UnsafeMutablePointer<CChar> = .init(mutating: base + j)
                     $0.initializeElement(at: i, to: string)
                     i += 1
                 }
