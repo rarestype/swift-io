@@ -1,7 +1,7 @@
 #if canImport(Darwin)
-import Darwin
+public import Darwin
 #elseif canImport(Glibc)
-import Glibc
+public import Glibc
 #else
 #error("unsupported platform")
 #endif

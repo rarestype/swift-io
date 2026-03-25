@@ -1,7 +1,7 @@
 import SystemIO
 import Testing
 
-@Suite enum Directories {
+@Suite enum DirectoryTests {
     @Test static func ExistenceDoesNotExist() throws {
         let path: FilePath = "Sources/SystemTests/TheLimit"
         #expect(!path.directory.exists())
