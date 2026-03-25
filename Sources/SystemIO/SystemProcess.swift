@@ -1,7 +1,7 @@
 #if canImport(Glibc)
-import Glibc
+public import Glibc
 #elseif canImport(Darwin)
-import Darwin
+public import Darwin
 #else
 #error("unsupported platform")
 #endif
@@ -34,7 +34,7 @@ extension SystemProcess {
         stderr: FileDescriptor? = nil,
         duping streams: [SystemProcess.Stream] = [],
         echo: Bool = false,
-        with environment: consuming SystemProcess.Environment = .inherit
+        with environment: EnvironmentSpecification = .inherit
     ) throws {
         try self.init(
             command: command,
@@ -54,7 +54,7 @@ extension SystemProcess {
         stderr: FileDescriptor? = nil,
         duping streams: [Stream] = [],
         echo: Bool = false,
-        with environment: consuming SystemProcess.Environment = .inherit
+        with environment: EnvironmentSpecification = .inherit
     ) throws {
         /// Note: `argv[0]` is not necessarily a valid path to the current executable.
         /// However, `/proc/self/exe` is.
@@ -138,4 +138,8 @@ extension SystemProcess {
     public func callAsFunction() throws(SystemProcessError) {
         try self.status().get()
     }
+}
+extension SystemProcess {
+    @available(*, deprecated, renamed: "EnvironmentSpecification")
+    public typealias Environment = EnvironmentSpecification
 }

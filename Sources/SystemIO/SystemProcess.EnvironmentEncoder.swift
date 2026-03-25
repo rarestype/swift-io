@@ -1,5 +1,5 @@
 extension SystemProcess {
-    @frozen public struct EnvironmentEncoder {
+    @frozen public struct EnvironmentEncoder: ~Copyable {
         @usableFromInline var offsets: [Int]
         @usableFromInline var buffer: [UInt8]
 
