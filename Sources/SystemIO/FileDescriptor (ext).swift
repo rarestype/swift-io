@@ -11,7 +11,12 @@ extension FileDescriptor {
 
     /// Attempts to read the entirety of this file to a string. This involves
     /// a seek operation, followed by a read operation.
-    @inlinable public func readAll(_: String.Type = String.self) throws -> String {
+    @available(
+        *, deprecated, message: """
+        readAll(_:) can experience race conditions and can fail to read the entire input, \
+        use `read(buffering:as:)` instead
+        """
+    ) @inlinable public func readAll(_: String.Type = String.self) throws -> String {
         let bytes: Int = try self.length()
         return try .init(unsafeUninitializedCapacity: bytes) {
             let buffer: UnsafeMutableRawBufferPointer = .init($0)
@@ -26,7 +31,12 @@ extension FileDescriptor {
 
     /// Attempts to read the entirety of this file to an array of raw bytes.
     /// This involves a seek operation, followed by a read operation.
-    @inlinable public func readAll(_: [UInt8].Type = [UInt8].self) throws -> [UInt8] {
+    @available(
+        *, deprecated, message: """
+        readAll(_:) can experience race conditions and can fail to read the entire input, \
+        use `read(buffering:)` instead
+        """
+    ) @inlinable public func readAll(_: [UInt8].Type = [UInt8].self) throws -> [UInt8] {
         let bytes: Int = try self.length()
         return try .init(unsafeUninitializedCapacity: bytes) {
             let buffer: UnsafeMutableRawBufferPointer = .init($0)
@@ -36,17 +46,27 @@ extension FileDescriptor {
             }
         }
     }
+
+    @available(*, deprecated, renamed: "read(buffering:as:)")
+    @inlinable @_disfavoredOverload public func read<Encoding>(
+        _ encoding: Encoding.Type = Unicode.UTF8.self,
+        buffering: Int = 4096,
+    ) throws -> String where Encoding: _UnicodeEncoding, Encoding.CodeUnit == UInt8 {
+        try self.read(buffering: buffering, as: encoding)
+    }
 }
 extension FileDescriptor {
-    /// Attempts to read UTF-8 text from this file until no more data is available.
+    /// Attempts to read text from this file until no more data is available.
+    /// This moves the file descriptor’s offset.
     @inlinable public func read<Encoding>(
-        _ encoding: Encoding.Type = Unicode.UTF8.self,
-        buffering: Int = 4096
-    ) throws -> String
-        where Encoding: _UnicodeEncoding, Encoding.CodeUnit == UInt8 {
+        buffering: Int = 4096,
+        as encoding: Encoding.Type = Unicode.UTF8.self,
+    ) throws -> String where Encoding: _UnicodeEncoding, Encoding.CodeUnit == UInt8 {
+        // i cannot think of a better way to avoid the intermediate array
         .init(decoding: try self.read(buffering: buffering), as: encoding)
     }
     /// Attempts to read raw bytes from this file until no more data is available.
+    /// This moves the file descriptor’s offset.
     @inlinable public func read(buffering: Int = 4096) throws -> [UInt8] {
         let buffer: UnsafeMutableRawBufferPointer = .allocate(
             byteCount: buffering,
@@ -60,10 +80,9 @@ extension FileDescriptor {
 
         while true {
             let bytes: Int = try self.read(into: buffer)
-
-            output += buffer.prefix(bytes)
-
-            if  bytes < buffer.count {
+            if  bytes > 0 {
+                output += buffer.prefix(bytes)
+            } else {
                 return output
             }
         }

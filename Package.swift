@@ -36,6 +36,7 @@ let package: Package = .init(
             ],
             exclude: [
                 "directories",
+                "files",
             ]
         ),
     ]

@@ -120,10 +120,10 @@ extension FilePath {
     }
 
     @inlinable public func read(_: [UInt8].Type = [UInt8].self) throws -> [UInt8] {
-        try self.open(.readOnly) { try $0.readAll() }
+        try self.open(.readOnly) { try $0.read(buffering: 0x20000) }
     }
     @inlinable public func read(_: String.Type = String.self) throws -> String {
-        try self.open(.readOnly) { try $0.readAll() }
+        try self.open(.readOnly) { try $0.read(buffering: 0x20000) }
     }
 }
 extension FilePath {
