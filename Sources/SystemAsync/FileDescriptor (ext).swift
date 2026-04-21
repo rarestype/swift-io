@@ -23,7 +23,9 @@ extension FileDescriptor {
     ) throws -> AsyncThrowingStream<[UInt8], any Error> {
         try self.setNonBlocking()
 
-        let queue: DispatchQueue = .init(label: "FileDescriptor.readAll(\(self.rawValue))")
+        let queue: DispatchQueue = .init(
+            label: "FileDescriptor.read(buffering: \(bufferSize)) (fd = \(self.rawValue))"
+        )
         let source: any DispatchSourceRead = DispatchSource.makeReadSource(
             fileDescriptor: self.rawValue,
             queue: queue
