@@ -63,8 +63,8 @@ extension FileDescriptor {
                         // Yield the chunk of bytes to the async context
                         output.yield([UInt8].init(buffer[..<bytesRead]))
                     }
-                // EAGAIN/EWOULDBLOCK: We drained the pipe for now.
-                // Do nothing and let the DispatchSource wait for the next event.
+                    // EAGAIN/EWOULDBLOCK: We drained the pipe for now.
+                    // Do nothing and let the DispatchSource wait for the next event.
                 } catch Errno.wouldBlock, Errno.resourceTemporarilyUnavailable {
                 } catch {
                     // A real error occurred

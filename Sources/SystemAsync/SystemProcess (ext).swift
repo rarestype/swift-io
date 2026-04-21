@@ -54,10 +54,8 @@ extension SystemProcess {
             process = try command((), writable.stdout, writable.stderr)
         }
 
-        async
-        let stdout: [UInt8] = readable.stdout.readAll(buffering: bufferSize)
-        async
-        let stderr: [UInt8] = readable.stderr.readAll(buffering: bufferSize)
+        async let stdout: [UInt8] = readable.stdout.readAll(buffering: bufferSize)
+        async let stderr: [UInt8] = readable.stderr.readAll(buffering: bufferSize)
 
         try process()
 
