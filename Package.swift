@@ -15,6 +15,12 @@ let package: Package = .init(
     ],
     targets: [
         .target(
+            name: "SystemAsync",
+            dependencies: [
+                .target(name: "SystemIO"),
+            ]
+        ),
+        .target(
             name: "SystemIO",
             dependencies: [
                 .product(name: "SystemPackage", package: "swift-system"),
@@ -29,6 +35,12 @@ let package: Package = .init(
             ]
         ),
 
+        .testTarget(
+            name: "SystemAsyncTests",
+            dependencies: [
+                .target(name: "SystemAsync"),
+            ],
+        ),
         .testTarget(
             name: "SystemTests",
             dependencies: [
