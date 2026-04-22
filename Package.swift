@@ -5,6 +5,7 @@ let package: Package = .init(
     name: "swift-io",
     platforms: [.macOS(.v15), .iOS(.v18), .visionOS(.v2)],
     products: [
+        .library(name: "SystemAsync", targets: ["SystemAsync"]),
         .library(name: "SystemIO", targets: ["SystemIO"]),
         .library(name: "System_ArgumentParser", targets: ["System_ArgumentParser"]),
     ],
