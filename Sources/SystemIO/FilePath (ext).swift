@@ -106,7 +106,8 @@ extension FilePath {
     /// Reads a *single* line from this file, without the line terminator.
     ///
     /// This is mostly useful for reading secrets, like keys and tokens. This is not performant
-    /// for large files, for that, use ``readLines(buffering:with:)`` instead.
+    /// for large files, for that, use
+    /// ``readLines(buffering:with:) (Int, (Substring)->Void) -> ()`` instead.
     @inlinable public func readLine() throws -> String {
         .init(try self.read().prefix { !$0.isNewline })
     }
@@ -116,7 +117,14 @@ extension FilePath {
         buffering: Int = 0x100000,
         with body: (ArraySlice<UInt8>) throws -> Void
     ) throws {
-        try self.open(.readOnly) { try $0.readLines(with: body) }
+        try self.open(.readOnly) { try $0.readLines(buffering: buffering, with: body) }
+    }
+    /// Reads a file line-by-line incrementally, yielding each line as a ``Substring``.
+    @inlinable public func readLines(
+        buffering: Int = 0x100000,
+        with body: (Substring) throws -> Void
+    ) throws {
+        try self.open(.readOnly) { try $0.readLines(buffering: buffering, with: body) }
     }
 
     @inlinable public func read(_: [UInt8].Type = [UInt8].self) throws -> [UInt8] {
