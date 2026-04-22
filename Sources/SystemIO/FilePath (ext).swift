@@ -118,6 +118,13 @@ extension FilePath {
     ) throws {
         try self.open(.readOnly) { try $0.readLines(with: body) }
     }
+    /// Reads a file line-by-line incrementally, yielding each line as a ``Substring``.
+    @inlinable public func readLines(
+        buffering: Int = 0x100000,
+        with body: (Substring) throws -> Void
+    ) throws {
+        try self.open(.readOnly) { try $0.readLines(with: body) }
+    }
 
     @inlinable public func read(_: [UInt8].Type = [UInt8].self) throws -> [UInt8] {
         try self.open(.readOnly) { try $0.read(buffering: 0x20000) }
