@@ -109,7 +109,7 @@ extension FileDescriptor {
         buffering: Int = 0x100000,
         with body: (Substring) throws -> Void
     ) throws {
-        try self.readLines {
+        try self.readLines(buffering: buffering) {
             let string: String = .init(decoding: $0, as: Unicode.UTF8.self)
             try body(string[...])
         }
