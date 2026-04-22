@@ -104,7 +104,7 @@ extension FileDescriptor {
     }
 }
 extension FileDescriptor {
-    /// Reads a file line-by-line incrementally, yielding each line as an `Substring`.
+    /// Reads a file line-by-line incrementally, yielding each line as a `Substring`.
     public func readLines(
         buffering: Int = 0x100000,
         with body: (Substring) throws -> Void
