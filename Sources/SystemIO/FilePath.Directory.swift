@@ -82,10 +82,13 @@ extension FilePath.Directory {
         self.path.append(next)
     }
 
+    @_disfavoredOverload
     @inlinable public static func / (self: consuming Self, next: FilePath.Component) -> Self {
         self /= next
         return self
     }
+
+    @_disfavoredOverload
     @inlinable public static func / (self: consuming Self, next: String) -> Self {
         self /= next
         return self

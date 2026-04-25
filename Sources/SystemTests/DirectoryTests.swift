@@ -42,8 +42,8 @@ import Testing
     @Test static func Complex() throws {
         var files: [FilePath] = []
 
-        let path: FilePath = "Sources/SystemTests/directories/complex"
-        try path.directory.walk {
+        let path: FilePath.Directory = "Sources/SystemTests/directories/complex"
+        try path.walk {
             files.append($0)
             return true
         }
