@@ -10,7 +10,7 @@ import Glibc
 
 extension FilePath.Directory {
     /// An unsafe interface for iterating directory entries from a directory pointer.
-    @usableFromInline @frozen struct Stream: ~Copyable {
+    struct Stream: ~Copyable {
         private var pointer: FilePath.DirectoryPointer?
 
         private init(pointer: FilePath.DirectoryPointer?) {
@@ -27,7 +27,7 @@ extension FilePath.Directory {
 extension FilePath.Directory.Stream {
     static var empty: Self { .init(pointer: nil) }
 
-    @usableFromInline static func open(
+    static func open(
         _ directory: FilePath.Directory
     ) throws(FileError) -> Self {
         let pointer: FilePath.DirectoryPointer? = directory.path.withPlatformString(opendir)
@@ -42,7 +42,7 @@ extension FilePath.Directory.Stream {
         return .init(pointer: pointer)
     }
 
-    @usableFromInline mutating func next() -> FilePath.Component? {
+    mutating func next() -> FilePath.Component? {
         guard let stream: FilePath.DirectoryPointer = self.pointer else {
             return nil
         }
