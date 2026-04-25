@@ -82,10 +82,13 @@ extension FilePath.Directory {
         self.path.append(next)
     }
 
+    @_disfavoredOverload
     @inlinable public static func / (self: consuming Self, next: FilePath.Component) -> Self {
         self /= next
         return self
     }
+
+    @_disfavoredOverload
     @inlinable public static func / (self: consuming Self, next: String) -> Self {
         self /= next
         return self
@@ -114,32 +117,72 @@ extension FilePath.Directory: ExpressibleByStringInterpolation {
 }
 extension FilePath.Directory: Sequence {
     @inlinable public func makeIterator() -> FilePath.DirectoryIterator {
-        .init(self.path)
+        .init(iterating: self)
     }
 }
 extension FilePath.Directory {
     /// Recursively visits every node (including nested directories) within this directory. The
     /// yielded file paths begin with the same components as ``path``.
+    @available(*, deprecated, message: "use `walk` returning `DirectoryRecursion` instead")
     @inlinable public func walk(with body: (FilePath) throws -> Bool) throws {
-        try self.walk { try body($0 / $1) }
+        try self.walk { try body($0 / $1) ? .descend : nil }
     }
     /// Recursively visits every node (including nested directories) within this directory. The
     /// yielded directory paths begin with the same components as ``path``.
     ///
     /// If the closure returns `false`, descendants will not be visited.
+    @available(*, deprecated, message: "use `walk` returning `DirectoryRecursion` instead")
     @inlinable public func walk(
-        with body: (FilePath.Directory, FilePath.Component) throws -> Bool
+        with body: (Self, FilePath.Component) throws -> Bool
     ) throws {
-        //  minimize the amount of file descriptors we have open
-        var explore: [FilePath] = []
-        for next: Result<FilePath.Component, any Error> in self {
-            let next: FilePath.Component = try next.get()
-            if  try body(self, next) {
-                explore.append(self / next)
+        try self.walk { try body($0, $1) ? .descend : nil }
+    }
+}
+extension FilePath.Directory {
+    /// Recursively visits every node (including nested directories) within this directory. The
+    /// yielded file paths begin with the same components as ``path``.
+    ///
+    /// If the closure returns `nil`, descendants will not be visited.
+    public func walk(
+        with body: (FilePath) throws -> FilePath.DirectoryRecursion?
+    ) throws {
+        try self.walk {
+            let next: FilePath.Directory = $0 / $1
+            if  case .descend? = try body(next.path) {
+                return next
+            } else {
+                return nil
             }
         }
-        for current: FilePath in explore {
-            try current.directory.walk(with: body)
+    }
+    /// Recursively visits every node (including nested directories) within this directory. The
+    /// yielded directory paths begin with the same components as ``path``.
+    ///
+    /// If the closure returns `nil`, descendants will not be visited.
+    public func walk(
+        with body: (Self, FilePath.Component) throws -> FilePath.DirectoryRecursion?
+    ) throws {
+        try self.walk {
+            if  case .descend? = try body($0, $1) {
+                return $0 / $1
+            } else {
+                return nil
+            }
+        }
+    }
+
+    private func walk(
+        with body: (Self, FilePath.Component) throws -> FilePath.Directory?
+    ) throws {
+        //  minimize the amount of file descriptors we have open
+        var explore: [Self] = [self]
+        while let node: Self = explore.popLast() {
+            var stream: Stream = try .open(node)
+            while let next: FilePath.Component = stream.next() {
+                if  let next: Self = try body(node, next) {
+                    explore.append(next)
+                }
+            }
         }
     }
 }
