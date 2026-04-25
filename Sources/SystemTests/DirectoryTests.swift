@@ -69,10 +69,10 @@ import Testing
     }
 
     @Test static func Shallow() throws {
-        var nodes: [FilePath.Component] = []
+        var nodes: Set<FilePath.Component> = []
         let path: FilePath.Directory = "Sources/SystemTests/directories/complex"
         try path.walk {
-            nodes.append($1)
+            nodes.insert($1)
             return nil
         }
 
@@ -86,10 +86,10 @@ import Testing
     }
 
     @Test static func ShallowForLoop() throws {
-        var nodes: [FilePath.Component] = []
+        var nodes: Set<FilePath.Component> = []
         let path: FilePath.Directory = "Sources/SystemTests/directories/complex"
         for node: Result<FilePath.Component, FileError> in path {
-            nodes.append(try node.get())
+            nodes.insert(try node.get())
         }
 
         #expect(

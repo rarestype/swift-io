@@ -1,5 +1,3 @@
-import SystemPackage
-
 #if canImport(Darwin)
 import Darwin
 #elseif canImport(Glibc)
@@ -25,6 +23,9 @@ extension FilePath.Directory {
     }
 }
 extension FilePath.Directory.Stream {
+    private static let dirent: DirentOffsets = .load
+}
+extension FilePath.Directory.Stream {
     static var empty: Self { .init(pointer: nil) }
 
     static func open(
@@ -47,24 +48,11 @@ extension FilePath.Directory.Stream {
             return nil
         }
 
-        guard let offset: Int = MemoryLayout<dirent>.offset(of: \.d_name) else {
-            fatalError("invalid `dirent` layout")
-        }
         while let entry: UnsafeMutablePointer<dirent> = readdir(stream) {
-            // `entry` is likely statically-allocated, and has variable-length layout.
-            //  attemping to unbind or rebind memory would be meaningless, as we must
-            //  rely on the kernel to protect us from buffer overreads.
-            let field: UnsafeMutableRawPointer = .init(entry) + offset
-            let name: UnsafeMutablePointer<CInterop.PlatformChar> = field.assumingMemoryBound(
-                to: CInterop.PlatformChar.self
-            )
-
-            guard let component: FilePath.Component = .init(platformString: name) else {
-                fatalError("could not read platform string from `dirent.d_name`")
-            }
+            let name: FilePath.Component = Self.dirent.name(from: entry)
             // ignore `.` and `..`
-            if  case .regular = component.kind {
-                return component
+            if  case .regular = name.kind {
+                return name
             } else {
                 continue
             }
