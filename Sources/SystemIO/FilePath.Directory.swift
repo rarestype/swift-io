@@ -117,32 +117,53 @@ extension FilePath.Directory: ExpressibleByStringInterpolation {
 }
 extension FilePath.Directory: Sequence {
     @inlinable public func makeIterator() -> FilePath.DirectoryIterator {
-        .init(self.path)
+        .init(iterating: self)
     }
 }
 extension FilePath.Directory {
     /// Recursively visits every node (including nested directories) within this directory. The
     /// yielded file paths begin with the same components as ``path``.
+    @available(*, deprecated, message: "use `walk` returning `DirectoryRecursion` instead")
     @inlinable public func walk(with body: (FilePath) throws -> Bool) throws {
-        try self.walk { try body($0 / $1) }
+        try self.walk { try body($0 / $1) ? .descend : nil }
     }
     /// Recursively visits every node (including nested directories) within this directory. The
     /// yielded directory paths begin with the same components as ``path``.
     ///
     /// If the closure returns `false`, descendants will not be visited.
+    @available(*, deprecated, message: "use `walk` returning `DirectoryRecursion` instead")
     @inlinable public func walk(
-        with body: (FilePath.Directory, FilePath.Component) throws -> Bool
+        with body: (Self, FilePath.Component) throws -> Bool
+    ) throws {
+        try self.walk { try body($0, $1) ? .descend : nil }
+    }
+}
+extension FilePath.Directory {
+    /// Recursively visits every node (including nested directories) within this directory. The
+    /// yielded file paths begin with the same components as ``path``.
+    ///
+    /// If the closure returns `nil`, descendants will not be visited.
+    @inlinable public func walk(
+        with body: (FilePath) throws -> FilePath.DirectoryRecursion?
+    ) throws {
+        try self.walk { try body($0 / $1) }
+    }
+    /// Recursively visits every node (including nested directories) within this directory. The
+    /// yielded directory paths begin with the same components as ``path``.
+    ///
+    /// If the closure returns `nil`, descendants will not be visited.
+    @inlinable public func walk(
+        with body: (Self, FilePath.Component) throws -> FilePath.DirectoryRecursion?
     ) throws {
         //  minimize the amount of file descriptors we have open
-        var explore: [FilePath] = []
-        for next: Result<FilePath.Component, any Error> in self {
-            let next: FilePath.Component = try next.get()
-            if  try body(self, next) {
-                explore.append(self / next)
+        var explore: [Self] = [self]
+        while let node: Self = explore.popLast() {
+            var stream: Stream = try .open(node)
+            while let next: FilePath.Component = stream.next() {
+                if  case .descend? = try body(node, next) {
+                    explore.append(node / next)
+                }
             }
-        }
-        for current: FilePath in explore {
-            try current.directory.walk(with: body)
         }
     }
 }

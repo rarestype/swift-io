@@ -1,5 +1,3 @@
-// this file based on:
-// https://github.com/hassila/swift-plugin-manager/blob/main/Sources/PluginManager/FilePathDirectoryView.swift
 import SystemPackage
 
 #if canImport(Darwin)
@@ -10,38 +8,42 @@ import Glibc
 #error("unsupported platform")
 #endif
 
-extension FilePath.DirectoryIterator {
+extension FilePath.Directory {
     /// An unsafe interface for iterating directory entries from a directory pointer.
-    @usableFromInline @frozen enum Stream {
-        case unopened(FilePath)
-        case opened(FilePath.DirectoryPointer?)
-    }
-}
-extension FilePath.DirectoryIterator.Stream {
-    private mutating func open() throws -> FilePath.DirectoryPointer? {
-        switch self {
-        case .unopened(let path):
-            let pointer: FilePath.DirectoryPointer? = try path.withPlatformString {
-                if  let pointer: FilePath.DirectoryPointer = opendir($0) {
-                    return pointer
-                }
-                switch Errno.init(rawValue: errno) {
-                case .notDirectory:
-                    return nil
+    @usableFromInline @frozen struct Stream: ~Copyable {
+        private var pointer: FilePath.DirectoryPointer?
 
-                case let error:
-                    throw FileError.opening(path, error)
-                }
+        private init(pointer: FilePath.DirectoryPointer?) {
+            self.pointer = pointer
+        }
+
+        deinit {
+            if  let stream: FilePath.DirectoryPointer = self.pointer {
+                closedir(stream)
             }
-            self = .opened(pointer)
-            return pointer
-
-        case .opened(let pointer):
-            return pointer
         }
     }
-    mutating func next() throws -> FilePath.Component? {
-        guard let stream: FilePath.DirectoryPointer = try self.open() else {
+}
+extension FilePath.Directory.Stream {
+    static var empty: Self { .init(pointer: nil) }
+
+    @usableFromInline static func open(
+        _ directory: FilePath.Directory
+    ) throws(FileError) -> Self {
+        let pointer: FilePath.DirectoryPointer? = directory.path.withPlatformString(opendir)
+        if  case nil = pointer {
+            switch Errno.init(rawValue: errno) {
+            case .notDirectory:
+                break
+            case let error:
+                throw .opening(directory.path, error)
+            }
+        }
+        return .init(pointer: pointer)
+    }
+
+    @usableFromInline mutating func next() -> FilePath.Component? {
+        guard let stream: FilePath.DirectoryPointer = self.pointer else {
             return nil
         }
 
@@ -69,15 +71,7 @@ extension FilePath.DirectoryIterator.Stream {
         }
 
         closedir(stream)
-        self = .opened(nil)
+        self.pointer = nil
         return nil
-    }
-    mutating func close() {
-        guard case .opened(let stream?) = self else {
-            return
-        }
-
-        closedir(stream)
-        self = .opened(nil)
     }
 }
