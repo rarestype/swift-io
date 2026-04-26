@@ -92,6 +92,6 @@ import Testing
             return .descend
         }
 
-        #expect(nodes.sorted { $0.string < $1.string } == ["nested"])
+        #expect(nodes.sorted { $0.string < $1.string } == ["nested", "parent"])
     }
 }

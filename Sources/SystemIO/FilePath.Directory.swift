@@ -195,12 +195,13 @@ extension FilePath.Directory {
         while let node: Self = explore.popLast() {
             var stream: Stream = try .open(node)
             while let (next, type): (FilePath.Component, FileType?) = stream.next() {
-                let status: FileStatus
+                let status: FileStatus?
                 let path: FilePath = node / next
 
                 switch type {
                 case .directory?:
-                    status = try .status(of: path)
+                    // lazy evalution of stat
+                    status = nil
 
                 case .symlink?, nil:
                     // degrade broken symlinks to leaves
@@ -219,8 +220,10 @@ extension FilePath.Directory {
                 }
 
                 // make sure we have not visited this location before, from a symlink
-                if  case (inserted: true, _) = visited.insert(status.id),
-                    case .descend? = try directory(node, next, path) {
+                if  case .descend? = try directory(node, next, path),
+                    case (inserted: true, _) = visited.insert(
+                        (try status ?? FileStatus.status(of: path)).id
+                    ) {
                     explore.append(path.directory)
                 }
             }
