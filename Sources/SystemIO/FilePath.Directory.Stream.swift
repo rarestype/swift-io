@@ -43,16 +43,35 @@ extension FilePath.Directory.Stream {
         return .init(pointer: pointer)
     }
 
-    mutating func next() -> FilePath.Component? {
+    mutating func next() -> (FilePath.Component, FileType?)? {
         guard let stream: FilePath.DirectoryPointer = self.pointer else {
             return nil
         }
 
         while let entry: UnsafeMutablePointer<dirent> = readdir(stream) {
             let name: FilePath.Component = Self.dirent.name(from: entry)
+            let type: FileType?
+
+            #if canImport(Darwin)
+            typealias DType = Int32
+            #else
+            typealias DType = Int
+            #endif
+
+            switch DType.init(entry.pointee.d_type) {
+            case DT_DIR: type = .directory
+            case DT_REG: type = .regular
+            case DT_LNK: type = .symlink
+            case DT_BLK: type = .blockDevice
+            case DT_CHR: type = .characterDevice
+            case DT_FIFO: type = .fifo
+            case DT_SOCK: type = .socket
+            default: type = nil
+            }
+
             // ignore `.` and `..`
             if  case .regular = name.kind {
-                return name
+                return (name, type)
             } else {
                 continue
             }

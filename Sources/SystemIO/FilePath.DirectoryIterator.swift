@@ -24,7 +24,7 @@ extension FilePath.DirectoryIterator: IteratorProtocol {
             return .failure(error)
         }
 
-        guard let component: FilePath.Component = self.stream.next() else {
+        guard let (component, _): (FilePath.Component, FileType?) = self.stream.next() else {
             return nil
         }
 
