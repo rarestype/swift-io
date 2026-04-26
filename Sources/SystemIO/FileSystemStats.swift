@@ -6,6 +6,8 @@ import Darwin
 #error("unsupported platform")
 #endif
 
+import SystemPackage
+
 @frozen public struct FileSystemStats: Identifiable, Equatable, Sendable {
     public let id: UInt
 

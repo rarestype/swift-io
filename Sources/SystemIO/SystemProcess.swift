@@ -139,7 +139,3 @@ extension SystemProcess {
         try self.status().get()
     }
 }
-extension SystemProcess {
-    @available(*, deprecated, renamed: "EnvironmentSpecification")
-    public typealias Environment = EnvironmentSpecification
-}

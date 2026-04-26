@@ -1,16 +1,6 @@
-@_exported import struct SystemPackage.Errno
+import struct SystemPackage.Errno
 @_exported import struct SystemPackage.FilePath
 
-extension FilePath {
-    @available(*, unavailable, message: "Use the `directory` view instead")
-    @inlinable public static func / (lhs: Self, rhs: Component) -> Self {
-        lhs.appending(rhs)
-    }
-    @available(*, unavailable, message: "Use the `directory` view instead")
-    @inlinable public static func / (lhs: Self, rhs: String) -> Self {
-        lhs.appending(rhs)
-    }
-}
 extension FilePath {
     @inlinable public var directory: Directory { .init(path: self) }
 }
@@ -30,16 +20,16 @@ extension FilePath {
                 options: options,
                 permissions: permissions.map(FilePermissions.init(_:))
             )
-        } catch let error as Errno {
-            throw FileError.opening(self, error)
+        } catch let errno as Errno {
+            throw FileError.init(type: .opening(self, errno))
         }
     }
 
     @inlinable func close(_ file: FileDescriptor) throws {
         do {
             try file.close()
-        } catch let error as Errno {
-            throw FileError.closing(self, error)
+        } catch let errno as Errno {
+            throw FileError.init(type: .closing(self, errno))
         }
     }
 }

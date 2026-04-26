@@ -6,6 +6,8 @@ import Glibc
 #error("unsupported platform")
 #endif
 
+import SystemPackage
+
 extension FilePath.Directory {
     /// An unsafe interface for iterating directory entries from a directory pointer.
     struct Stream: ~Copyable {
@@ -36,8 +38,8 @@ extension FilePath.Directory.Stream {
             switch Errno.init(rawValue: errno) {
             case .notDirectory:
                 break
-            case let error:
-                throw .opening(directory.path, error)
+            case let errno:
+                throw .init(type: .opening(directory.path, errno))
             }
         }
         return .init(pointer: pointer)
