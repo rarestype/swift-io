@@ -145,7 +145,10 @@ extension FilePath.Directory {
     ///
     /// As the name suggests, `leaf` will be called only if the node did not look like a
     /// directory at the time of visitation. The walker calls `directory` if and only if it
-    /// decided not to call `leaf`. Symlinks are automatically followed.
+    /// decided not to call `leaf`.
+    ///
+    /// Symlinks are automatically followed and it is guaranteed that exactly one of the two
+    /// closures will be called exactly once for every node in the set of selected subtrees.
     public func walk(
         file leaf: (FilePath) throws -> (),
         directory: (FilePath) throws -> FilePath.DirectoryRecursion?,
@@ -162,7 +165,10 @@ extension FilePath.Directory {
     ///
     /// As the name suggests, `leaf` will be called only if the node did not look like a
     /// directory at the time of visitation. The walker calls `directory` if and only if it
-    /// decided not to call `leaf`. Symlinks are automatically followed.
+    /// decided not to call `leaf`.
+    ///
+    /// Symlinks are automatically followed and it is guaranteed that exactly one of the two
+    /// closures will be called exactly once for every node in the set of selected subtrees.
     public func walk(
         file leaf: (Self, FilePath.Component) throws -> (),
         directory: (Self, FilePath.Component) throws -> FilePath.DirectoryRecursion?,
@@ -196,9 +202,10 @@ extension FilePath.Directory {
                 case .directory?:
                     status = try .status(of: path)
 
-                case .symlink?:
-                    let target: FileStatus = try .status(of: path)
-                    if  target.is(.directory) {
+                case .symlink?, nil:
+                    // degrade broken symlinks to leaves
+                    if  let target: FileStatus = try? .status(of: path),
+                            target.is(.directory) {
                         status = target
                         break
                     }
@@ -206,7 +213,7 @@ extension FilePath.Directory {
                     try leaf(node, next, path)
                     continue
 
-                default:
+                case _?:
                     try leaf(node, next, path)
                     continue
                 }
