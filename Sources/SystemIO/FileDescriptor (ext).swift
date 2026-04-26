@@ -4,55 +4,9 @@ extension FileDescriptor {
     @inlinable public func length() throws -> Int {
         let count: Int64 = try self.seek(offset: 0, from: .end)
         guard count < .max else {
-            throw FileSeekError.isDirectory
+            throw FileError.init(type: .seek(.isDirectory))
         }
         return .init(count)
-    }
-
-    /// Attempts to read the entirety of this file to a string. This involves
-    /// a seek operation, followed by a read operation.
-    @available(
-        *, deprecated, message: """
-        readAll(_:) can experience race conditions and can fail to read the entire input, \
-        use `read(buffering:as:)` instead
-        """
-    ) @inlinable public func readAll(_: String.Type = String.self) throws -> String {
-        let bytes: Int = try self.length()
-        return try .init(unsafeUninitializedCapacity: bytes) {
-            let buffer: UnsafeMutableRawBufferPointer = .init($0)
-            let read: Int = try self.read(fromAbsoluteOffset: 0, into: buffer)
-            if  read != bytes {
-                throw FileReadError.incomplete(read: read, of: bytes)
-            } else {
-                return read
-            }
-        }
-    }
-
-    /// Attempts to read the entirety of this file to an array of raw bytes.
-    /// This involves a seek operation, followed by a read operation.
-    @available(
-        *, deprecated, message: """
-        readAll(_:) can experience race conditions and can fail to read the entire input, \
-        use `read(buffering:)` instead
-        """
-    ) @inlinable public func readAll(_: [UInt8].Type = [UInt8].self) throws -> [UInt8] {
-        let bytes: Int = try self.length()
-        return try .init(unsafeUninitializedCapacity: bytes) {
-            let buffer: UnsafeMutableRawBufferPointer = .init($0)
-            $1 = try self.read(fromAbsoluteOffset: 0, into: buffer)
-            if  $1 != bytes {
-                throw FileReadError.incomplete(read: $1, of: bytes)
-            }
-        }
-    }
-
-    @available(*, deprecated, renamed: "read(buffering:as:)")
-    @inlinable @_disfavoredOverload public func read<Encoding>(
-        _ encoding: Encoding.Type = Unicode.UTF8.self,
-        buffering: Int = 4096,
-    ) throws -> String where Encoding: _UnicodeEncoding, Encoding.CodeUnit == UInt8 {
-        try self.read(buffering: buffering, as: encoding)
     }
 }
 extension FileDescriptor {

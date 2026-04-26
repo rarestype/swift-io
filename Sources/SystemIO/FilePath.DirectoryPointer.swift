@@ -8,8 +8,8 @@ import Glibc
 
 extension FilePath {
     #if canImport(Darwin)
-    @usableFromInline typealias DirectoryPointer = UnsafeMutablePointer<DIR>
+    typealias DirectoryPointer = UnsafeMutablePointer<DIR>
     #elseif canImport(Glibc)
-    @usableFromInline typealias DirectoryPointer = OpaquePointer
+    typealias DirectoryPointer = OpaquePointer
     #endif
 }
