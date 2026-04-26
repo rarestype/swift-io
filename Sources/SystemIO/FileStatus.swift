@@ -16,8 +16,26 @@ import struct SystemPackage.Errno
     }
 }
 extension FileStatus {
+    var id: FileIdentifier {
+        .init(dev: self.value.st_dev, ino: self.value.st_ino)
+    }
+}
+extension FileStatus {
     @inlinable public func `is`(_ type: FileType) -> Bool {
         self.value.st_mode & S_IFMT == type.mask
+    }
+
+    @inlinable public var type: FileType? {
+        switch self.value.st_mode & S_IFMT {
+        case S_IFBLK: .blockDevice
+        case S_IFCHR: .characterDevice
+        case S_IFDIR: .directory
+        case S_IFIFO: .fifo
+        case S_IFREG: .regular
+        case S_IFSOCK: .socket
+        case S_IFLNK: .symlink
+        default: nil
+        }
     }
 }
 extension FileStatus {

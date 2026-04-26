@@ -23,81 +23,75 @@ import Testing
         #expect(!path.directory.exists())
     }
     @Test static func Flat() throws {
-        var files: [FilePath] = []
+        var files: [FilePath.Component] = []
 
         let path: FilePath = "Sources/SystemTests/directories/flat"
         try path.directory.walk {
-            files.append($0)
+            files.append($1)
+        } directory: {
+            files.append($1)
             return .descend
         }
-        let discovered: Set<FilePath.Component> = files.reduce(into: []) {
-            if  let file: FilePath.Component = $1.lastComponent {
-                $0.insert(file)
-            }
-        }
 
-        #expect(discovered == ["a.txt", "b.txt", "c.txt"])
+        #expect(files.sorted { $0.string < $1.string } == ["a.txt", "b.txt", "c.txt"])
     }
 
     @Test static func Complex() throws {
-        var files: [FilePath] = []
-
+        var files: [FilePath.Component] = []
         let path: FilePath.Directory = "Sources/SystemTests/directories/complex"
         try path.walk {
-            files.append($0)
+            files.append($1)
+        } directory: {
+            files.append($1)
             return .descend
         }
-
-        let discovered: Set<FilePath.Component> = files.reduce(into: []) {
-            if  let file: FilePath.Component = $1.lastComponent {
-                $0.insert(file)
-            }
-        }
-
         #expect(
-            discovered == [
+            files.sorted { $0.string < $1.string } == [
                 "a.txt",
                 "b.txt",
-                "x",
                 "c.txt",
-                "y",
                 "d.txt",
+                "e.txt",
+                "x",
+                "y",
                 "z",
-                "e.txt"
             ]
         )
     }
 
     @Test static func Shallow() throws {
-        var nodes: Set<FilePath.Component> = []
+        var nodes: [FilePath.Component] = []
         let path: FilePath.Directory = "Sources/SystemTests/directories/complex"
         try path.walk {
-            nodes.insert($1)
+            nodes.append($1)
+        } directory: {
+            nodes.append($1)
             return nil
         }
 
-        #expect(
-            nodes == [
-                "a.txt",
-                "b.txt",
-                "x",
-            ]
-        )
+        #expect(nodes.sorted { $0.string < $1.string } == ["a.txt", "b.txt", "x"])
     }
 
     @Test static func ShallowForLoop() throws {
-        var nodes: Set<FilePath.Component> = []
+        var nodes: [FilePath.Component] = []
         let path: FilePath.Directory = "Sources/SystemTests/directories/complex"
         for node: Result<FilePath.Component, FileError> in path {
-            nodes.insert(try node.get())
+            nodes.append(try node.get())
         }
 
-        #expect(
-            nodes == [
-                "a.txt",
-                "b.txt",
-                "x",
-            ]
-        )
+        #expect(nodes.sorted { $0.string < $1.string } == ["a.txt", "b.txt", "x"])
+    }
+
+    @Test static func Cycles() throws {
+        var nodes: [FilePath.Component] = []
+        let path: FilePath.Directory = "Sources/SystemTests/directories/cyclical"
+        try path.walk {
+            nodes.append($1)
+        } directory: {
+            nodes.append($1)
+            return .descend
+        }
+
+        #expect(nodes.sorted { $0.string < $1.string } == ["nested"])
     }
 }
