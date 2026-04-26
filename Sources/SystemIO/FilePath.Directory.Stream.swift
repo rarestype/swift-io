@@ -51,7 +51,14 @@ extension FilePath.Directory.Stream {
         while let entry: UnsafeMutablePointer<dirent> = readdir(stream) {
             let name: FilePath.Component = Self.dirent.name(from: entry)
             let type: FileType?
-            switch Int.init(entry.pointee.d_type) {
+
+            #if canImport(Darwin)
+            typealias DType = Int32
+            #else
+            typealias DType = Int
+            #endif
+
+            switch DType.init(entry.pointee.d_type) {
             case DT_DIR: type = .directory
             case DT_REG: type = .regular
             case DT_LNK: type = .symlink
