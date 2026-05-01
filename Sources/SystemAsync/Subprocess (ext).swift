@@ -1,6 +1,7 @@
 public import SystemIO
 
-extension SystemProcess {
+public enum Subprocess {}
+extension Subprocess {
     public static func capture(
         buffering bufferSize: Int = 8192,
         _ command: (
@@ -33,6 +34,42 @@ extension SystemProcess {
         stdout: [UInt8],
         stderr: [UInt8]
     ) {
+        let process: (
+            stdout: [UInt8],
+            stderr: [UInt8],
+            status: Result<(), SystemProcessError>
+        ) = try await self.capture(buffering: bufferSize, command) {
+            try await $0.reduce(into: [], +=)
+        } stderr: {
+            try await $0.reduce(into: [], +=)
+        }
+
+        switch process.status {
+        case .failure(.exit(let code, let invocation)):
+            throw SubprocessError.init(
+                invocation: invocation,
+                status: code,
+                stderr: process.stderr
+            )
+
+        case .failure(let error):
+            throw error
+
+        case .success:
+            return (process.stdout, process.stderr)
+        }
+    }
+
+    private static func capture<F1, F2>(
+        buffering bufferSize: Int = 8192,
+        _ command: (
+            (),
+            _ stdout: FileDescriptor,
+            _ stderr: FileDescriptor
+        ) throws -> SystemProcess,
+        stdout: sending (consuming AsyncThrowingStream<[UInt8], any Error>) async throws -> F1,
+        stderr: sending (consuming AsyncThrowingStream<[UInt8], any Error>) async throws -> F2,
+    ) async throws -> (stdout: F1, stderr: F2, status: Result<(), SystemProcessError>) {
         let readable: (stdout: FileDescriptor, stderr: FileDescriptor)
         let writable: (stdout: FileDescriptor, stderr: FileDescriptor)
 
@@ -54,11 +91,9 @@ extension SystemProcess {
             process = try command((), writable.stdout, writable.stderr)
         }
 
-        async let stdout: [UInt8] = readable.stdout.readAll(buffering: bufferSize)
-        async let stderr: [UInt8] = readable.stderr.readAll(buffering: bufferSize)
-
-        try process()
-
-        return (try await stdout, try await stderr)
+        async let stdout: F1 = stdout(readable.stdout.read(buffering: bufferSize))
+        async let stderr: F2 = stderr(readable.stderr.read(buffering: bufferSize))
+        let status: Result<(), SystemProcessError> = process.status()
+        return (try await stdout, try await stderr, status)
     }
 }

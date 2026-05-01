@@ -30,6 +30,7 @@ extension SystemProcess {
     public init(
         command: String?,
         _ arguments: String?...,
+        in directory: FilePath.Directory? = nil,
         stdout: FileDescriptor? = nil,
         stderr: FileDescriptor? = nil,
         duping streams: [SystemProcess.Stream] = [],
@@ -39,6 +40,7 @@ extension SystemProcess {
         try self.init(
             command: command,
             arguments: arguments.compactMap { $0 },
+            in: directory,
             stdout: stdout,
             stderr: stderr,
             duping: streams,
@@ -50,6 +52,7 @@ extension SystemProcess {
     public init(
         command: String?,
         arguments: [String],
+        in directory: FilePath.Directory? = nil,
         stdout: FileDescriptor? = nil,
         stderr: FileDescriptor? = nil,
         duping streams: [Stream] = [],
@@ -96,6 +99,10 @@ extension SystemProcess {
             posix_spawn_file_actions_destroy(&actions)
         }
 
+        if  let directory: FilePath.Directory {
+            posix_spawn_file_actions_addchdir_np(&actions, directory.path.string)
+        }
+
         if  let stdout: FileDescriptor {
             posix_spawn_file_actions_adddup2(&actions, stdout.rawValue, 1)
         }
@@ -122,12 +129,12 @@ extension SystemProcess {
         self.init(invocation: invocation, id: process)
     }
 
-    public func status() -> Result<Void, SystemProcessError> {
+    public func status() -> Result<(), SystemProcessError> {
         var status: Int32 = 0
 
         switch waitpid(self.id, &status, 0) {
-        case self.id:       break
-        case let status:    return .failure(.wait(status, self.invocation))
+        case self.id: break
+        case let status: return .failure(.wait(status, self.invocation))
         }
 
         //  It would be great if we could interpret the status code. But we do not have
