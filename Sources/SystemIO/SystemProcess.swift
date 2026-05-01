@@ -27,8 +27,8 @@ extension SystemProcess {
     }
 }
 
-#if os(Linux) || os(macOS)
 extension SystemProcess {
+    #if os(Linux) || os(macOS)
     public init(
         command: String?,
         _ arguments: String?...,
@@ -130,6 +130,7 @@ extension SystemProcess {
 
         self.init(invocation: invocation, id: process)
     }
+    #endif
 
     public func status() -> Result<(), SystemProcessError> {
         var status: Int32 = 0
@@ -148,4 +149,3 @@ extension SystemProcess {
         try self.status().get()
     }
 }
-#endif
