@@ -39,6 +39,7 @@ extension FilePath.Directory {
     }
 }
 extension FilePath.Directory {
+    #if os(Linux) || os(macOS)
     /// A shorthand for creating a directory and (conditionally) cleaning it.
     public func create(clean: Bool) throws {
         if  clean {
@@ -63,6 +64,7 @@ extension FilePath.Directory {
     public func move(replacing destination: FilePath.Directory) throws {
         try SystemProcess.init(command: "mv", "-f", "\(self.path)", "\(destination.path)")()
     }
+    #endif
 
     /// Returns true if a directory exists at ``path``, returns false if
     /// the file does not exist or is not a directory. This method follows symlinks.
