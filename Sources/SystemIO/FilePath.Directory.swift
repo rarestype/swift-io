@@ -39,6 +39,7 @@ extension FilePath.Directory {
     }
 }
 extension FilePath.Directory {
+    #if os(Linux) || os(macOS)
     /// A shorthand for creating a directory and (conditionally) cleaning it.
     public func create(clean: Bool) throws {
         if  clean {
@@ -47,8 +48,6 @@ extension FilePath.Directory {
 
         try self.create()
     }
-
-    #if os(Linux) || os(macOS)
     /// Creates the directory, including any implied parent directories if they do not already
     /// exist.
     public func create() throws {
