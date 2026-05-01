@@ -26,6 +26,8 @@ extension SystemProcess {
         #endif
     }
 }
+
+#if os(Linux) || os(macOS)
 extension SystemProcess {
     public init(
         command: String?,
@@ -146,3 +148,4 @@ extension SystemProcess {
         try self.status().get()
     }
 }
+#endif

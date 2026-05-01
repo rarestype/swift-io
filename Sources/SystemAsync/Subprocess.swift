@@ -93,7 +93,12 @@ extension Subprocess {
 
         async let stdout: F1 = stdout(readable.stdout.read(buffering: bufferSize))
         async let stderr: F2 = stderr(readable.stderr.read(buffering: bufferSize))
-        let status: Result<(), SystemProcessError> = process.status()
-        return (try await stdout, try await stderr, status)
+
+        let complete: (stdout: F1, stderr: F2) = (try await stdout, try await stderr)
+        // now that the pipes have hit EOF (which happens when the child closes them
+        // upon exiting), we can safely call `waitpid`. The child is almost certainly dead
+        // already, so this synchronous call will return almost instantly without
+        // blocking the thread pool
+        return (complete.stdout, complete.stderr, process.status())
     }
 }
