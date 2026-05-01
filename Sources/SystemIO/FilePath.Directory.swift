@@ -25,17 +25,25 @@ extension FilePath {
         }
     }
 }
+extension FilePath.Directory: _FilePath_Directory {}
 extension FilePath.Directory {
-    public static func current() -> Self? {
-        guard
-        let buffer: UnsafeMutablePointer<CChar> = getcwd(nil, 0) else {
-            return nil
-        }
-        defer {
-            free(buffer)
-        }
+    /// Query and return the current working directory. This can potentially fail if, for
+    /// example, the directory no longer exists.
+    ///
+    /// Querying the current working directory involves a system call and an allocation. You
+    /// should save the result if the current working directory is not expected to change.
+    public static var current: Self {
+        get throws {
+            guard
+            let buffer: UnsafeMutablePointer<CChar> = getcwd(nil, 0) else {
+                throw SystemCallError.getcwd
+            }
+            defer {
+                free(buffer)
+            }
 
-        return .init(path: FilePath.init(platformString: buffer))
+            return .init(path: FilePath.init(platformString: buffer))
+        }
     }
 }
 extension FilePath.Directory {
