@@ -47,6 +47,8 @@ extension FilePath.Directory {
 
         try self.create()
     }
+
+    #if os(Linux) || os(macOS)
     /// Creates the directory, including any implied parent directories if they do not already
     /// exist.
     public func create() throws {
@@ -63,6 +65,7 @@ extension FilePath.Directory {
     public func move(replacing destination: FilePath.Directory) throws {
         try SystemProcess.init(command: "mv", "-f", "\(self.path)", "\(destination.path)")()
     }
+    #endif
 
     /// Returns true if a directory exists at ``path``, returns false if
     /// the file does not exist or is not a directory. This method follows symlinks.
