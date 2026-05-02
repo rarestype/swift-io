@@ -75,13 +75,12 @@ extension FilePath.Directory {
     #endif
 
     /// Returns true if a directory exists at ``path``, returns false if
-    /// the file does not exist or is not a directory. This method follows symlinks.
-    public func exists() -> Bool {
-        if  let status: FileStatus = try? .status(of: self.path) {
-            status.is(.directory)
-        } else {
-            false
-        }
+    /// the file does not exist or is not a directory. To get the ``FileStatus``, call it via
+    /// ``path``.
+    ///
+    /// This method follows symlinks.
+    @inlinable public var exists: Bool {
+        get throws { try self.path.status?.is(.directory) ?? false }
     }
 }
 extension FilePath.Directory {
@@ -194,7 +193,7 @@ extension FilePath.Directory {
         file leaf: (Self, FilePath.Component, FilePath) throws -> (),
         directory: (Self, FilePath.Component, FilePath) throws -> FilePath.DirectoryRecursion?,
     ) throws {
-        let base: FileStatus = try .status(of: self.path)
+        let base: FileStatus = try .init(path: self.path)
         if !base.is(.directory) {
             return
         }
@@ -215,7 +214,7 @@ extension FilePath.Directory {
 
                 case .symlink?, nil:
                     // degrade broken symlinks to leaves
-                    if  let target: FileStatus = try? .status(of: path),
+                    if  let target: FileStatus = try? .init(path: path),
                             target.is(.directory) {
                         status = target
                         break
@@ -232,7 +231,7 @@ extension FilePath.Directory {
                 // make sure we have not visited this location before, from a symlink
                 if  case .descend? = try directory(node, next, path),
                     case (inserted: true, _) = visited.insert(
-                        (try status ?? FileStatus.status(of: path)).id
+                        (try status ?? FileStatus.init(path: path)).id
                     ) {
                     explore.append(path.directory)
                 }

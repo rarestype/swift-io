@@ -39,20 +39,24 @@ extension FileStatus {
     }
 }
 extension FileStatus {
-    public static func status(of path: FilePath) throws -> Self {
-        try path.withPlatformString {
-            var value: stat = .init()
-            switch stat($0, &value) {
-            case 0: return .init(value: value)
-            case _: throw Errno.init(rawValue: errno)
-            }
-        }
-    }
-    public static func status(of file: FileDescriptor) throws -> Self {
+    public static func status(of file: FileDescriptor) throws -> Self { try .init(file: file) }
+
+    @available(*, deprecated, message: "use 'FilePath.status' instead")
+    public static func status(of path: FilePath) throws -> Self { try .init(path: path) }
+}
+extension FileStatus {
+    init(file: borrowing FileDescriptor) throws(Errno) {
         var value: stat = .init()
         switch fstat(file.rawValue, &value) {
-        case 0: return .init(value: value)
+        case 0: self.init(value: value)
         case _: throw Errno.init(rawValue: errno)
+        }
+    }
+    init(path: borrowing FilePath) throws(Errno) {
+        var value: stat = .init()
+        switch path.withPlatformString({ stat($0, &value) }) {
+        case 0: self.init(value: value)
+        case _: throw .init(rawValue: errno)
         }
     }
 }
