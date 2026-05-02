@@ -22,7 +22,7 @@ extension FilePath {
             }
         }
     }
-    /// Returns true if a file exists at ``path``, returns false if a file does not exist.
+    /// Returns true if a file exists here, false if a file does not exist.
     /// This method follows symlinks.
     @inlinable public var exists: Bool {
         get throws { try self.status != nil }
