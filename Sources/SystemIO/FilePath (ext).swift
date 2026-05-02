@@ -5,6 +5,30 @@ extension FilePath {
     @inlinable public var directory: Directory { .init(path: self) }
 }
 extension FilePath {
+    /// Returns the status of the file, or nil if it does not exist or if any interior path
+    /// components do not exist.
+    ///
+    /// This method follows symlinks.
+    public var status: FileStatus? {
+        get throws {
+            do {
+                return try .init(path: self)
+            } catch .noSuchFileOrDirectory {
+                // when file does not exist
+                return nil
+            } catch .notDirectory {
+                // when interior path component is not a directory
+                return nil
+            }
+        }
+    }
+    /// Returns true if a file exists here, false if a file does not exist.
+    /// This method follows symlinks.
+    @inlinable public var exists: Bool {
+        get throws { try self.status != nil }
+    }
+}
+extension FilePath {
     @inlinable func open(
         _ mode: FileDescriptor.AccessMode,
         permissions: (
