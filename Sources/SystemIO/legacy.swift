@@ -7,7 +7,7 @@ extension _FilePath_Directory where Self == FilePath.Directory {
     @available(*, deprecated, message: "use throwing 'current { get }' instead")
     public static func current() -> Self? { try? .current }
 
-    /// Returns true if a directory exists at ``path``, returns false if
+    /// Returns true if a directory exists at ``FilePath.Directory/path``, returns false if
     /// the file does not exist or is not a directory. This method follows symlinks.
     @available(*, deprecated, message: "use throwing 'exists { get }' instead")
     public func exists() -> Bool {
