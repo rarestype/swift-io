@@ -8,6 +8,10 @@ public import Musl
 
 @frozen public enum Environment {}
 extension Environment {
+    @inlinable public static subscript(_ name: String, overwrite: Bool = true) -> Variable {
+        .init(name: name, overwrite: overwrite)
+    }
+
     @inlinable public static subscript(_ name: String) -> String? {
         if  let cString: UnsafeMutablePointer<CChar> = getenv(name) {
             return String.init(cString: cString)
@@ -17,7 +21,7 @@ extension Environment {
     }
 
     @inlinable public static subscript(_ name: String) -> String {
-        get throws(VariableError<String>) {
+        get throws(VariableGetterError<String>) {
             guard let value: String = self[name] else {
                 throw .undefined(name)
             }
@@ -29,12 +33,12 @@ extension Environment {
         _ name: String,
         as _: T.Type = T.self
     ) -> T where T: LosslessStringConvertible {
-        get throws(VariableError<T>) {
+        get throws(VariableGetterError<T>) {
             guard let value: String = self[name] else {
                 throw .undefined(name)
             }
             guard let value: T = .init(value) else {
-                throw .malformed(name)
+                throw .malformed(name, value: value)
             }
             return value
         }
