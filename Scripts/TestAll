@@ -10,7 +10,6 @@ swift build -c release \
     --explicit-target-dependency-import-check=error \
     --build-tests
 
-SWIFT_IO_TEST_VARIABLE='Hi Barbie!' \
 swift test -c release \
     --skip-build \
     --explicit-target-dependency-import-check=error
