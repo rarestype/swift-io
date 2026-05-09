@@ -36,6 +36,18 @@ import Testing
         #expect(files.sorted { $0.string < $1.string } == ["a.txt", "b.txt", "c.txt"])
     }
 
+    @Test static func Parents() throws {
+        let path: FilePath.Directory = "test"
+        let parent: FilePath.Directory = try #require(path.parent)
+        #expect("\(parent)" == ".")
+        #expect(parent.parent == nil)
+    }
+    @Test static func ParentsLexicalNormalization() throws {
+        let path: FilePath.Directory = "foo/../bar"
+        #expect(path.parent != nil)
+        #expect(path.parent?.parent == nil)
+    }
+
     @Test static func Complex() throws {
         var files: [FilePath.Component] = []
         let path: FilePath.Directory = "Sources/SystemTests/directories/complex"

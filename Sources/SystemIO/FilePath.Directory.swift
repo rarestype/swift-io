@@ -26,6 +26,10 @@ extension FilePath {
     }
 }
 extension FilePath.Directory: _FilePath_Directory {}
+extension FilePath.Directory: SystemPath {
+    @inlinable public var components: ComponentView { .init(base: self.path.components) }
+    @inlinable public var parent: Self? { self.path.parent }
+}
 extension FilePath.Directory {
     /// Query and return the current working directory. This can potentially fail if, for
     /// example, the directory no longer exists.
@@ -59,18 +63,18 @@ extension FilePath.Directory {
     /// Creates the directory, including any implied parent directories if they do not already
     /// exist.
     public func create() throws {
-        try SystemProcess.init(command: "mkdir", "-p", "\(self.path)")()
+        try SystemProcess.init(command: "mkdir", "-p", "\(self)")()
     }
 
     public func remove() throws {
-        try SystemProcess.init(command: "rm", "-rf", "\(self.path)")()
+        try SystemProcess.init(command: "rm", "-rf", "\(self)")()
     }
 
     public func move(into location: FilePath.Directory) throws {
-        try SystemProcess.init(command: "mv", "\(self.path)", "\(location.path)/.")()
+        try SystemProcess.init(command: "mv", "\(self)", "\(location)/.")()
     }
     public func move(replacing destination: FilePath.Directory) throws {
-        try SystemProcess.init(command: "mv", "-f", "\(self.path)", "\(destination.path)")()
+        try SystemProcess.init(command: "mv", "-f", "\(self)", "\(destination)")()
     }
     #endif
 
@@ -84,11 +88,25 @@ extension FilePath.Directory {
     }
 }
 extension FilePath.Directory {
+    @inlinable public static func /= (
+        self: inout Self,
+        next: some Collection<FilePath.Component>
+    ) {
+        self.path.append(next)
+    }
+
     @inlinable public static func /= (self: inout Self, next: FilePath.Component) {
         self.path.append(next)
     }
     @inlinable public static func /= (self: inout Self, next: String) {
         self.path.append(next)
+    }
+}
+extension FilePath.Directory {
+    @_disfavoredOverload
+    @inlinable public static func / (self: consuming Self, next: ComponentView) -> Self {
+        self /= next
+        return self
     }
 
     @_disfavoredOverload
@@ -102,7 +120,15 @@ extension FilePath.Directory {
         self /= next
         return self
     }
-
+}
+extension FilePath.Directory {
+    @inlinable public static func / (
+        self: consuming Self,
+        next: FilePath.ComponentView
+    ) -> FilePath {
+        self /= next
+        return self.path
+    }
     @inlinable public static func / (
         self: consuming Self,
         next: FilePath.Component
