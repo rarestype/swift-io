@@ -1,8 +1,29 @@
 import struct SystemPackage.Errno
 @_exported import struct SystemPackage.FilePath
 
+extension FilePath: SystemPath {}
 extension FilePath {
     @inlinable public var directory: Directory { .init(path: self) }
+    @inlinable public var parent: Directory? {
+        consuming get {
+            switch self.lastComponent?.kind {
+            case .regular?:
+                break
+
+            case _?:
+                self.lexicallyNormalize()
+
+            case nil:
+                return nil
+            }
+
+            if  self.removeLastComponent() {
+                return self.isEmpty ? "." : self.directory
+            } else {
+                return nil
+            }
+        }
+    }
 }
 extension FilePath {
     /// Returns the status of the file, or nil if it does not exist or if any interior path
