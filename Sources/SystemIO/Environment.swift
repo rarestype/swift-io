@@ -4,6 +4,10 @@ public import Darwin
 public import Glibc
 #elseif canImport(Musl)
 public import Musl
+#elseif canImport(WASILibc)
+public import WASILibc
+#else
+#error("unsupported platform")
 #endif
 
 @frozen public enum Environment {}

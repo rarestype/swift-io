@@ -2,6 +2,8 @@
 public import Darwin
 #elseif canImport(Glibc)
 public import Glibc
+#elseif canImport(WASILibc)
+public import WASILibc
 #else
 #error("unsupported platform")
 #endif
