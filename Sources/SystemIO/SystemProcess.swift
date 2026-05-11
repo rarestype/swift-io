@@ -2,6 +2,8 @@
 public import Glibc
 #elseif canImport(Darwin)
 public import Darwin
+#elseif canImport(WASILibc)
+public import WASILibc
 #else
 #error("unsupported platform")
 #endif
@@ -130,7 +132,6 @@ extension SystemProcess {
 
         self.init(invocation: invocation, id: process)
     }
-    #endif
 
     public func status() -> Result<(), SystemProcessError> {
         var status: Int32 = 0
@@ -148,4 +149,5 @@ extension SystemProcess {
     public func callAsFunction() throws(SystemProcessError) {
         try self.status().get()
     }
+    #endif
 }

@@ -2,6 +2,8 @@
 public import Darwin
 #elseif canImport(Glibc)
 import Glibc
+#elseif canImport(WASILibc)
+import WASILibc
 #else
 #error("unsupported platform")
 #endif
@@ -9,7 +11,7 @@ import Glibc
 extension FilePath {
     #if canImport(Darwin)
     typealias DirectoryPointer = UnsafeMutablePointer<DIR>
-    #elseif canImport(Glibc)
+    #else
     typealias DirectoryPointer = OpaquePointer
     #endif
 }

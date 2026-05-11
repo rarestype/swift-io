@@ -5,4 +5,5 @@ import SystemPackage
     case closing(FilePath, Errno)
     case seek(Seek)
     case read(Read)
+    case mkdir(FilePath, Errno)
 }

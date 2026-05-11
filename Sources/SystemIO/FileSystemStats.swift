@@ -2,6 +2,8 @@
 import Glibc
 #elseif canImport(Darwin)
 import Darwin
+#elseif canImport(WASILibc)
+import WASILibc
 #else
 #error("unsupported platform")
 #endif
@@ -52,6 +54,7 @@ import SystemPackage
         self.flags = flags
     }
 }
+#if !os(WASI)
 extension FileSystemStats {
     public static func containing(path: FilePath) throws -> Self {
         let stats: statvfs = try withUnsafeTemporaryAllocation(of: statvfs.self, capacity: 1) {
@@ -77,3 +80,4 @@ extension FileSystemStats {
         )
     }
 }
+#endif

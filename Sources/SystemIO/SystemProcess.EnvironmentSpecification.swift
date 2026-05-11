@@ -2,6 +2,8 @@
 import Glibc
 #elseif canImport(Darwin)
 import Darwin
+#elseif canImport(WASILibc)
+import WASILibc
 #else
 #error("unsupported platform")
 #endif
@@ -34,6 +36,7 @@ extension SystemProcess.EnvironmentSpecification {
         return .init(inherit: true, offsets: encoder.offsets, buffer: encoder.buffer)
     }
 }
+#if os(Linux) || os(macOS)
 extension SystemProcess.EnvironmentSpecification {
     func withUnsafePointers<T>(
         _ yield: (UnsafePointer<UnsafeMutablePointer<CChar>?>?) throws -> T
@@ -79,3 +82,4 @@ extension SystemProcess.EnvironmentSpecification {
         }
     }
 }
+#endif

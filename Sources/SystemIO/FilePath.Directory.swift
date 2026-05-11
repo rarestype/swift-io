@@ -1,12 +1,25 @@
+import SystemPackage
+
 #if canImport(Darwin)
 
 import func Darwin.free
 import func Darwin.getcwd
+import func Darwin.mkdir
+import var Darwin.errno
 
 #elseif canImport(Glibc)
 
 import func Glibc.free
 import func Glibc.getcwd
+import func Glibc.mkdir
+import var Glibc.errno
+
+#elseif canImport(WASILibc)
+
+import func WASILibc.free
+import func WASILibc.getcwd
+import func WASILibc.mkdir
+import var WASILibc.errno
 
 #else
 #error("unsupported platform")
@@ -51,6 +64,50 @@ extension FilePath.Directory {
     }
 }
 extension FilePath.Directory {
+    /// Creates the directory, assuming the parent directory exists. Returns true if a
+    /// directory was created, false if it already exists.
+    @discardableResult
+    public func createLeaf(
+        permissions: (
+            owner: FilePermissions.Component?,
+            group: FilePermissions.Component?,
+            other: FilePermissions.Component?
+        ) = (.rwx, .rx, .rx)
+    ) throws -> Bool {
+        let status: Int32 = self.path.withPlatformString {
+            let permissions: FilePermissions = .init(permissions)
+            return mkdir($0, permissions.rawValue)
+        }
+        if  status != 0 {
+            switch Errno.init(rawValue: errno) {
+            case .fileExists:
+                return false
+
+            case let error:
+                throw FileError.init(type: .mkdir(self.path, error))
+            }
+        } else {
+            return true
+        }
+    }
+
+    /// Creates the directory, including any implied parent directories if they do not already
+    /// exist.
+    @discardableResult
+    public func create(
+        permissions: (
+            owner: FilePermissions.Component?,
+            group: FilePermissions.Component?,
+            other: FilePermissions.Component?
+        ) = (.rwx, .rx, .rx)
+    ) throws -> Bool {
+        // recursively create the parent directory if it exists and hasn’t been created yet.
+        if  let parent: Self = self.parent, try !parent.exists {
+            try parent.create()
+        }
+        return try self.createLeaf(permissions: permissions)
+    }
+
     #if os(Linux) || os(macOS)
     /// A shorthand for creating a directory and (conditionally) cleaning it.
     public func create(clean: Bool) throws {
@@ -59,11 +116,6 @@ extension FilePath.Directory {
         }
 
         try self.create()
-    }
-    /// Creates the directory, including any implied parent directories if they do not already
-    /// exist.
-    public func create() throws {
-        try SystemProcess.init(command: "mkdir", "-p", "\(self)")()
     }
 
     public func remove() throws {

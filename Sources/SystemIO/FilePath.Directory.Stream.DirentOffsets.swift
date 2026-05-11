@@ -4,6 +4,8 @@ import SystemPackage
 import Darwin
 #elseif canImport(Glibc)
 import Glibc
+#elseif canImport(WASILibc)
+import WASILibc
 #else
 #error("unsupported platform")
 #endif
@@ -15,10 +17,22 @@ extension FilePath.Directory.Stream {
 }
 extension FilePath.Directory.Stream.DirentOffsets {
     static var load: Self {
+        #if os(WASI)
+        // Swift cannot import C flexible array members (char d_name[]).
+        // We compute the offset manually: it starts immediately after d_type.
+        guard
+        let last: Int = MemoryLayout<dirent>.offset(of: \.d_type) else {
+            fatalError("invalid `dirent` layout")
+        }
+        // d_type is unsigned char
+        let name: Int = last + MemoryLayout<UInt8>.size
+
+        #else
         guard
         let name: Int = MemoryLayout<dirent>.offset(of: \.d_name) else {
             fatalError("invalid `dirent` layout")
         }
+        #endif
         return .init(name: name)
     }
 }

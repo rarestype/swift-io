@@ -106,4 +106,15 @@ import Testing
 
         #expect(nodes.sorted { $0.string < $1.string } == ["nested", "parent"])
     }
+
+    @Test static func CreateAlreadyExists() throws {
+        let directory: FilePath.Directory = "Sources/SystemTests/directories/flat"
+        #expect(try !directory.create())
+    }
+
+    @Test static func Create() throws {
+        let directory: FilePath.Directory = "Sources/SystemTests/directories/new/x/y/z"
+        #expect(try directory.create())
+        #expect(try directory.exists)
+    }
 }

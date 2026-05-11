@@ -13,3 +13,6 @@ swift build -c release \
 swift test -c release \
     --skip-build \
     --explicit-target-dependency-import-check=error
+
+# clean up after the test
+rm -r Sources/SystemTests/directories/new

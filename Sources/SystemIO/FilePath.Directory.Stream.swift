@@ -2,6 +2,18 @@
 import Darwin
 #elseif canImport(Glibc)
 import Glibc
+#elseif canImport(WASILibc)
+import WASILibc
+
+// WASI dirent.h macro polyfills
+var DT_UNKNOWN: Int32 { 0 }
+var DT_FIFO: Int32 { 1 }
+var DT_CHR: Int32 { 2 }
+var DT_DIR: Int32 { 4 }
+var DT_BLK: Int32 { 6 }
+var DT_REG: Int32 { 8 }
+var DT_LNK: Int32 { 10 }
+
 #else
 #error("unsupported platform")
 #endif
@@ -55,6 +67,8 @@ extension FilePath.Directory.Stream {
             let type: FileType?
 
             #if canImport(Darwin)
+            typealias DType = Int32
+            #elseif canImport(WASILibc)
             typealias DType = Int32
             #else
             typealias DType = Int
