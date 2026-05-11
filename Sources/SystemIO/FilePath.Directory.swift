@@ -6,7 +6,6 @@ import func Darwin.free
 import func Darwin.getcwd
 import func Darwin.mkdir
 import var Darwin.errno
-import var Darwin.EEXIST
 
 #elseif canImport(Glibc)
 
@@ -14,7 +13,6 @@ import func Glibc.free
 import func Glibc.getcwd
 import func Glibc.mkdir
 import var Glibc.errno
-import var Glibc.EEXIST
 
 #elseif canImport(WASILibc)
 
@@ -22,7 +20,6 @@ import func WASILibc.free
 import func WASILibc.getcwd
 import func WASILibc.mkdir
 import var WASILibc.errno
-import var WASILibc.EEXIST
 
 #else
 #error("unsupported platform")
