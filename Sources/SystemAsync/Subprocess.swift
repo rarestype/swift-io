@@ -1,6 +1,8 @@
 public import SystemIO
 
 public enum Subprocess {}
+
+#if os(Linux) || os(macOS)
 extension Subprocess {
     public static func capture(
         buffering bufferSize: Int = 8192,
@@ -102,3 +104,4 @@ extension Subprocess {
         return (complete.stdout, complete.stderr, process.status())
     }
 }
+#endif
