@@ -1,7 +1,7 @@
 import SystemIO
 import Testing
 
-@Suite enum EnvironmentTests {
+@Suite enum Environments {
     @Test static func ReadVariable() throws {
         let value: String = "Hi Barbie!"
         try Environment["SWIFT_IO_TEST_VARIABLE"] &= value

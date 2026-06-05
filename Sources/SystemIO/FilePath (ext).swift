@@ -225,3 +225,49 @@ extension FilePath {
         }
     }
 }
+extension FilePath {
+    /// Computes the path of `self` relative to the `base` ``FilePath``.
+    public func relative(to base: Self) -> ComponentView {
+        let base: Self = base.lexicallyNormalized()
+        let path: Self = self.lexicallyNormalized()
+
+        // if roots differ, a relative path cannot be formed
+        guard path.root == base.root else {
+            return path.components
+        }
+
+        var last: FilePath.ComponentView.Index? = nil
+        var prefix: Int = 0
+        for (i, b): (FilePath.ComponentView.Index, FilePath.Component) in zip(
+                path.components.indices,
+                base.components
+            ) {
+            if  path.components[i] == b {
+                prefix += 1
+                last = i
+            } else {
+                break
+            }
+        }
+
+        // step up for every component left in the base path
+        var relative: FilePath.ComponentView = .init()
+        for _: Int in 0 ..< base.components.count - prefix {
+            relative.append("..")
+        }
+
+        // step down by appending the remaining components of the target path
+        if  let last: FilePath.ComponentView.Index {
+            relative += path.components[path.components.index(after: last)...]
+        } else {
+            relative += path.components
+        }
+
+        // if the paths are identical, the relative path is just the current directory
+        if  relative.isEmpty {
+            relative.append(".")
+        }
+
+        return relative
+    }
+}

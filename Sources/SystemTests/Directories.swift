@@ -1,7 +1,7 @@
 import SystemIO
 import Testing
 
-@Suite enum DirectoryTests {
+@Suite enum Directories {
     @Test static func ExistenceDoesNotExist() throws {
         let path: FilePath = "Sources/SystemTests/TheLimit"
         #expect(try !path.directory.exists)
@@ -116,5 +116,10 @@ import Testing
         let directory: FilePath.Directory = "Sources/SystemTests/directories/new/x/y/z"
         #expect(try directory.create())
         #expect(try directory.exists)
+
+        try directory.remove()
+        try directory.parent?.remove()
+        try directory.parent?.parent?.remove()
+        try directory.parent?.parent?.parent?.remove()
     }
 }
