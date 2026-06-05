@@ -1,7 +1,7 @@
 import SystemIO
 import Testing
 
-@Suite enum FileTests {
+@Suite enum FileOperations {
     @Test static func StatusDoesNotExistLeaf() throws {
         let path: FilePath = "Sources/SystemTests/TheLimit"
         #expect(try nil == path.status)
