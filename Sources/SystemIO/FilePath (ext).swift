@@ -29,13 +29,16 @@ extension FilePath {
 }
 extension FilePath {
     /// Remove the file (or an empty directory) from disk. This only works on empty directories.
+    /// Returns `true` if the file was removed, `false` if it was not.
     @discardableResult
-    public func remove() throws -> Bool {
+    public func remove(force: Bool = false) throws -> Bool {
         try self.withPlatformString {
             do throws(SystemCallErrorType) {
                 try SystemCall._remove($0)
                 return true
-            } catch ._ENOTEMPTY {
+            } catch ._ENOTEMPTY, ._EEXIST {
+                return false
+            } catch ._ENOENT where force {
                 return false
             } catch {
                 throw FileError.init(type: .remove(self, error))
