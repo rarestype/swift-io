@@ -1,6 +1,8 @@
 import struct SystemPackage.Errno
 @_exported import struct SystemPackage.FilePath
 
+internal import SystemCalls
+
 extension FilePath: SystemPath {}
 extension FilePath {
     @inlinable public var directory: Directory { .init(path: self) }
@@ -26,6 +28,25 @@ extension FilePath {
     }
 }
 extension FilePath {
+    /// Remove the file (or an empty directory) from disk. This only works on empty directories.
+    /// Returns `true` if the file was removed, `false` if it was not.
+    @discardableResult
+    public func remove(force: Bool = false) throws -> Bool {
+        try self.withPlatformString {
+            do throws(SystemCallErrorType) {
+                try SystemCall._remove($0)
+                return true
+            } catch ._ENOTEMPTY, ._EEXIST {
+                return false
+            } catch ._ENOENT where force {
+                return false
+            } catch {
+                throw FileError.init(type: .remove(self, error))
+            }
+        }
+    }
+}
+extension FilePath {
     /// Returns the status of the file, or nil if it does not exist or if any interior path
     /// components do not exist.
     ///
@@ -34,10 +55,10 @@ extension FilePath {
         get throws {
             do {
                 return try .init(path: self)
-            } catch .noSuchFileOrDirectory {
+            } catch ._ENOENT {
                 // when file does not exist
                 return nil
-            } catch .notDirectory {
+            } catch ._ENOTDIR {
                 // when interior path component is not a directory
                 return nil
             }
@@ -50,7 +71,7 @@ extension FilePath {
     }
 }
 extension FilePath {
-    @inlinable func open(
+    @usableFromInline func open(
         _ mode: FileDescriptor.AccessMode,
         permissions: (
             owner: FilePermissions.Component?,
@@ -66,15 +87,15 @@ extension FilePath {
                 permissions: permissions.map(FilePermissions.init(_:))
             )
         } catch let errno as Errno {
-            throw FileError.init(type: .opening(self, errno))
+            throw FileError.init(type: .opening(self, .init(errno: errno.rawValue)))
         }
     }
 
-    @inlinable func close(_ file: FileDescriptor) throws {
+    @usableFromInline func close(_ file: FileDescriptor) throws {
         do {
             try file.close()
         } catch let errno as Errno {
-            throw FileError.init(type: .closing(self, errno))
+            throw FileError.init(type: .closing(self, .init(errno: errno.rawValue)))
         }
     }
 }

@@ -8,7 +8,7 @@ public import WASILibc
 #error("unsupported platform")
 #endif
 
-import struct SystemPackage.Errno
+internal import SystemCalls
 
 @frozen public struct FileStatus {
     @usableFromInline let value: stat
@@ -47,18 +47,17 @@ extension FileStatus {
     public static func status(of path: FilePath) throws -> Self { try .init(path: path) }
 }
 extension FileStatus {
-    init(file: borrowing FileDescriptor) throws(Errno) {
-        var value: stat = .init()
-        switch fstat(file.rawValue, &value) {
-        case 0: self.init(value: value)
-        case _: throw Errno.init(rawValue: errno)
-        }
+    init(file: borrowing FileDescriptor) throws(SystemCallErrorType) {
+        self.init(value: try SystemCall._fstat(file.rawValue))
     }
-    init(path: borrowing FilePath) throws(Errno) {
-        var value: stat = .init()
-        switch path.withPlatformString({ stat($0, &value) }) {
-        case 0: self.init(value: value)
-        case _: throw .init(rawValue: errno)
+    init(path: borrowing FilePath) throws(SystemCallErrorType) {
+        let result: Result<stat, SystemCallErrorType> = path.withPlatformString {
+            do throws(SystemCallErrorType) {
+                return .success(try SystemCall._stat($0))
+            } catch {
+                return .failure(error)
+            }
         }
+        self.init(value: try result.get())
     }
 }

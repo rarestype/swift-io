@@ -31,4 +31,15 @@ import Testing
         let text: String = try file.read()
         #expect(text == "Hi Barbie!\n")
     }
+    @Test static func Remove() throws {
+        let file: FilePath = "Sources/SystemTests/files/test.txt"
+        try file.overwrite(with: "Hi Barbie!\n".utf8)
+
+        #expect(try file.remove())
+        #expect(try file.remove(force: true) == false)
+
+        #expect(throws: FileError.self) {
+            try file.remove()
+        }
+    }
 }

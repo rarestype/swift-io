@@ -18,19 +18,20 @@ var DT_LNK: Int32 { 10 }
 #error("unsupported platform")
 #endif
 
-import SystemPackage
+internal import SystemCalls
+internal import SystemPackage
 
 extension FilePath.Directory {
     /// An unsafe interface for iterating directory entries from a directory pointer.
     struct Stream: ~Copyable {
-        private var pointer: FilePath.DirectoryPointer?
+        private var pointer: SystemCall.DirectoryPointer?
 
-        private init(pointer: FilePath.DirectoryPointer?) {
+        private init(pointer: SystemCall.DirectoryPointer?) {
             self.pointer = pointer
         }
 
         deinit {
-            if  let stream: FilePath.DirectoryPointer = self.pointer {
+            if  let stream: SystemCall.DirectoryPointer = self.pointer {
                 closedir(stream)
             }
         }
@@ -45,20 +46,23 @@ extension FilePath.Directory.Stream {
     static func open(
         _ directory: FilePath.Directory
     ) throws(FileError) -> Self {
-        let pointer: FilePath.DirectoryPointer? = directory.path.withPlatformString(opendir)
-        if  case nil = pointer {
-            switch Errno.init(rawValue: errno) {
-            case .notDirectory:
-                break
-            case let errno:
-                throw .init(type: .opening(directory.path, errno))
+        let result: Result<
+            SystemCall.DirectoryPointer?,
+            FileError
+        > = directory.path.withPlatformString {
+            do throws (SystemCallErrorType) {
+                return .success(try SystemCall._opendir($0))
+            } catch ._ENOTDIR {
+                return .success(nil)
+            } catch let error {
+                return .failure(FileError.init(type: .opening(directory.path, error)))
             }
         }
-        return .init(pointer: pointer)
+        return .init(pointer: try result.get())
     }
 
     mutating func next() -> (FilePath.Component, FileType?)? {
-        guard let stream: FilePath.DirectoryPointer = self.pointer else {
+        guard let stream: SystemCall.DirectoryPointer = self.pointer else {
             return nil
         }
 

@@ -8,6 +8,7 @@ import WASILibc
 #error("unsupported platform")
 #endif
 
+import SystemCalls
 import SystemPackage
 
 @frozen public struct FileSystemStats: Identifiable, Equatable, Sendable {
@@ -57,13 +58,7 @@ import SystemPackage
 #if !os(WASI)
 extension FileSystemStats {
     public static func containing(path: FilePath) throws -> Self {
-        let stats: statvfs = try withUnsafeTemporaryAllocation(of: statvfs.self, capacity: 1) {
-            guard case 0 = statvfs(path.string, &$0[0]) else {
-                throw Errno.init(rawValue: errno)
-            }
-
-            return $0[0]
-        }
+        let stats: statvfs = try path.withPlatformString { try SystemCall._statvfs($0) }
         //  Explicit `UInt32 -> UInt` conversion needed on Darwin.
         return .init(
             id: UInt.init(stats.f_fsid),
