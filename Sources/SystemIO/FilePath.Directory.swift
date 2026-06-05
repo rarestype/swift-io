@@ -1,29 +1,5 @@
-import SystemPackage
-
-#if canImport(Darwin)
-
-import func Darwin.free
-import func Darwin.getcwd
-import func Darwin.mkdir
-import var Darwin.errno
-
-#elseif canImport(Glibc)
-
-import func Glibc.free
-import func Glibc.getcwd
-import func Glibc.mkdir
-import var Glibc.errno
-
-#elseif canImport(WASILibc)
-
-import func WASILibc.free
-import func WASILibc.getcwd
-import func WASILibc.mkdir
-import var WASILibc.errno
-
-#else
-#error("unsupported platform")
-#endif
+internal import SystemPackage
+internal import SystemCalls
 
 extension FilePath {
     /// `Directory` provides an interface for creating a ``DirectoryIterator``.
@@ -51,15 +27,7 @@ extension FilePath.Directory {
     /// should save the result if the current working directory is not expected to change.
     public static var current: Self {
         get throws {
-            guard
-            let buffer: UnsafeMutablePointer<CChar> = getcwd(nil, 0) else {
-                throw SystemCallError.getcwd
-            }
-            defer {
-                free(buffer)
-            }
-
-            return .init(path: FilePath.init(platformString: buffer))
+            .init(path: try SystemCall._getcwd { FilePath.init(platformString: $0) })
         }
     }
 }
@@ -74,20 +42,16 @@ extension FilePath.Directory {
             other: FilePermissions.Component?
         ) = (.rwx, .rx, .rx)
     ) throws -> Bool {
-        let status: Int32 = self.path.withPlatformString {
+        try self.path.withPlatformString {
             let permissions: FilePermissions = .init(permissions)
-            return mkdir($0, permissions.rawValue)
-        }
-        if  status != 0 {
-            switch Errno.init(rawValue: errno) {
-            case .fileExists:
+            do throws(SystemCallErrorType) {
+                try SystemCall._mkdir($0, permissions.rawValue)
+                return true
+            } catch ._EEXIST {
                 return false
-
-            case let error:
+            } catch let error {
                 throw FileError.init(type: .mkdir(self.path, error))
             }
-        } else {
-            return true
         }
     }
 

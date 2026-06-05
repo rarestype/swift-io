@@ -1,9 +1,10 @@
-import SystemPackage
+internal import SystemCalls
 
-@usableFromInline enum FileErrorType: Error, Equatable, Sendable {
-    case opening(FilePath, Errno)
-    case closing(FilePath, Errno)
+enum FileErrorType: Error, Equatable, Sendable {
+    case opening(FilePath, SystemCallErrorType)
+    case closing(FilePath, SystemCallErrorType)
     case seek(Seek)
     case read(Read)
-    case mkdir(FilePath, Errno)
+    case remove(FilePath, SystemCallErrorType)
+    case mkdir(FilePath, SystemCallErrorType)
 }

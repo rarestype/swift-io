@@ -1,7 +1,7 @@
 @_exported import struct SystemPackage.FileDescriptor
 
 extension FileDescriptor {
-    @inlinable public func length() throws -> Int {
+    public func length() throws -> Int {
         let count: Int64 = try self.seek(offset: 0, from: .end)
         guard count < .max else {
             throw FileError.init(type: .seek(.isDirectory))

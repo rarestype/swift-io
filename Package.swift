@@ -22,8 +22,12 @@ let package: Package = .init(
             ]
         ),
         .target(
+            name: "SystemCalls",
+        ),
+        .target(
             name: "SystemIO",
             dependencies: [
+                .target(name: "SystemCalls"),
                 .product(name: "SystemPackage", package: "swift-system"),
             ]
         ),
